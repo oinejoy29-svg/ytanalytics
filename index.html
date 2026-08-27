@@ -3120,6 +3120,32 @@ function renderOtherTagList(){
     renderVideoList();
 
 }
+
+    function getVideoTags(video){
+
+    const tags = [
+        ...(video.tags || [])
+    ];
+
+    const title =
+        String(video.title || "");
+
+    MEMBERS.forEach(member => {
+
+        if(
+            title.includes(member) &&
+            !tags.includes(member)
+        ){
+
+            tags.push(member);
+
+        }
+
+    });
+
+    return tags;
+
+}
 </script>
 <div id="tagModal" class="tag-modal">
 
