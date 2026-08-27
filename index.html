@@ -1458,11 +1458,11 @@ function videoMatchesTag(video,tag){
         return seconds >= 30 * 60;
     }
 
-    return (video.tags || []).includes(tag);
+    // メンバー・その他タグは
+    // 自動判定＋手動設定を含めて判定
+    return getVideoTags(video).includes(tag);
 
 }
-
-
 function videoMatchesFilters(video){
 
     return selectedVideoTags.every(
