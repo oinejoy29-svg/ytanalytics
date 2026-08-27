@@ -2962,16 +2962,44 @@ function renderOtherTagList(){
 
     }
 
-    function renderOtherTagChoices(){
+    el.innerHTML =
+        editingOtherTags.map((tag,index) => `
+            <span
+                class="video-tag"
+                style="display:inline-flex;align-items:center;gap:4px;margin:2px"
+            >
+                ${escapeHTML(tag)}
+
+                <button
+                    type="button"
+                    class="secondary small"
+                    onclick="removeOtherTag(${index})"
+                    style="padding:2px 6px;font-size:10px"
+                >
+                    ×
+                </button>
+
+            </span>
+        `).join("");
+
+}
+
+
+function renderOtherTagChoices(){
 
     const el =
-        document.getElementById("otherTagChoices");
+        document.getElementById(
+            "otherTagChoices"
+        );
 
     if(!el) return;
 
     const tags = [];
 
-    // 全動画の自動・保存タグ
+    /*
+        data.jsonに保存されているタグ
+    */
+
     data.videos.forEach(video => {
 
         (video.tags || []).forEach(tag => {
@@ -2989,7 +3017,11 @@ function renderOtherTagList(){
 
     });
 
-    // 手動で追加したその他タグ
+
+    /*
+        手動追加したその他タグ
+    */
+
     Object.values(manualTagData).forEach(manual => {
 
         (manual.otherTags || []).forEach(tag => {
@@ -3004,14 +3036,22 @@ function renderOtherTagList(){
 
     });
 
-    // 現在編集中の動画についているタグは除外
+
+    /*
+        現在編集中の動画に
+        すでについているタグは候補から除外
+    */
+
     const choices =
         tags.filter(
-            tag => !editingOtherTags.includes(tag)
+            tag =>
+                !editingOtherTags.includes(tag)
         );
+
 
     el.innerHTML =
         choices.map(tag => `
+
             <button
                 type="button"
                 class="secondary small"
@@ -3019,42 +3059,25 @@ function renderOtherTagList(){
             >
                 ${escapeHTML(tag)}
             </button>
+
         `).join("");
 
 }
-    function selectOtherTag(tag){
 
-    if(!editingOtherTags.includes(tag)){
+
+function selectOtherTag(tag){
+
+    if(
+        !editingOtherTags.includes(tag)
+    ){
 
         editingOtherTags.push(tag);
 
     }
 
     renderOtherTagList();
+
     renderOtherTagChoices();
-
-}
-    
-
-    el.innerHTML =
-        editingOtherTags.map((tag,index) => {
-
-            return `
-                <span class="other-tag-item">
-
-                    ${escapeHTML(tag)}
-
-                    <button
-                        class="other-tag-remove"
-                        onclick="removeOtherTag(${index})"
-                    >
-                        ×
-                    </button>
-
-                </span>
-            `;
-
-        }).join("");
 
 }
     function addOtherTag(){
