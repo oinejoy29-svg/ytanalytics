@@ -1130,16 +1130,24 @@ async function loadData(){
 
     function getVideoTags(video){
 
-    const autoTags =
+    const savedTags =
         Array.isArray(video.tags)
             ? video.tags
             : [];
+
+    const title =
+        String(video.title || "");
+
+    const autoMemberTags =
+        MEMBERS.filter(member =>
+            title.includes(member)
+        );
 
     const manual =
         manualTagData[video.id];
 
     /*
-        手動編集済み動画は
+        手動編集済みの場合は
         手動設定を優先
     */
 
@@ -1154,13 +1162,20 @@ async function loadData(){
 
     }
 
+    /*
+        手動設定がない場合は
+        タイトルからメンバーを自動判定
+        ＋ data.jsonに保存されているタグ
+    */
+
     return [
-        ...new Set(autoTags)
+        ...new Set([
+            ...autoMemberTags,
+            ...savedTags
+        ])
     ];
 
 }
-
-
 /* ========================================
    登録者
 ======================================== */
@@ -1311,6 +1326,7 @@ function renderFilterChoices(){
 
     const members = [
         "逢田珠里依",
+         "天野香乃愛",
         "市原愛弓",
         "江角怜音",
         "大信田美月",
@@ -3101,6 +3117,7 @@ function renderOtherTagList(){
 }
     const MEMBERS = [
     "逢田珠里依",
+    "天野香乃愛",
     "市原愛弓",
     "江角怜音",
     "大信田美月",
@@ -3121,31 +3138,7 @@ function renderOtherTagList(){
 
 }
 
-    function getVideoTags(video){
-
-    const tags = [
-        ...(video.tags || [])
-    ];
-
-    const title =
-        String(video.title || "");
-
-    MEMBERS.forEach(member => {
-
-        if(
-            title.includes(member) &&
-            !tags.includes(member)
-        ){
-
-            tags.push(member);
-
-        }
-
-    });
-
-    return tags;
-
-}
+   
 </script>
 <div id="tagModal" class="tag-modal">
 
