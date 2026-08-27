@@ -382,15 +382,28 @@ button.small{
 
 @media(max-width:550px){
 
+    .video-meta-row{
+        display:flex;
+        align-items:flex-start;
+        justify-content:space-between;
+        gap:6px;
+    }
+
     .video-meta{
         display:flex;
         flex-direction:column;
         align-items:flex-start;
         gap:2px;
+        margin-bottom:0;
+        min-width:0;
+    }
+
+    .video-tag-edit{
+        flex-shrink:0;
+        white-space:nowrap;
     }
 
 }
-
 .video-meta-row{
     display:flex;
     align-items:center;
