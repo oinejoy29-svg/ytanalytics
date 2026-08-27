@@ -1,0 +1,2597 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#切り抜くぞニアジョイ | YouTube Analytics</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+*{box-sizing:border-box}
+
+body{
+    margin:0;
+    background:#f5f5f5;
+    color:#222;
+    font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue","Yu Gothic",sans-serif
+}
+
+.container{
+    max-width:1100px;
+    margin:auto;
+    padding:20px
+}
+
+header{
+    margin-bottom:24px
+}
+
+header h1{
+    margin:0;
+    font-size:30px;
+    font-weight:800;
+    letter-spacing:-.5px
+}
+
+header p{
+    margin:5px 0 0;
+    color:#888;
+    font-size:14px
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:14px;
+    margin-bottom:12px
+}
+
+.stat,.card{
+    background:#fff;
+    border-radius:16px;
+    box-shadow:0 2px 10px rgba(0,0,0,.05)
+}
+
+.stat{
+    padding:18px
+}
+
+.stat-label{
+    color:#777;
+    font-size:13px;
+    margin-bottom:8px
+}
+
+.stat-value{
+    font-size:25px;
+    font-weight:700
+}
+
+.stat-sub{
+    margin-top:5px;
+    color:#888;
+    font-size:12px
+}
+
+.trend-comment{
+    background:#fff;
+    border-radius:12px;
+    padding:12px 16px;
+    margin-bottom:20px;
+    color:#555;
+    font-size:13px;
+    line-height:1.6;
+    box-shadow:0 2px 10px rgba(0,0,0,.04)
+}
+
+.card{
+    padding:20px;
+    margin-bottom:20px
+}
+
+.card-title{
+    font-size:18px;
+    font-weight:700;
+    margin-bottom:16px
+}
+
+button{
+    border:0;
+    border-radius:9px;
+    padding:10px 16px;
+    font-size:14px;
+    cursor:pointer;
+    background:#222;
+    color:#fff
+}
+
+button:hover{
+    opacity:.85
+}
+
+button.secondary{
+    background:#eee;
+    color:#333
+}
+
+button.danger{
+    background:#e53935
+}
+
+button.small{
+    padding:7px 10px;
+    font-size:12px
+}
+
+/* グラフ */
+
+.chart-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap
+}
+
+.chart-name{
+    font-size:15px;
+    font-weight:700;
+    margin-bottom:8px
+}
+
+.chart-stats{
+    font-size:15px;
+    font-weight:700;
+    color:#aaa;
+    margin-left:8px
+}
+
+.chart-controls{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin:8px 0 22px
+}
+
+.period-buttons{
+    display:flex;
+    gap:5px;
+    flex-wrap:wrap
+}
+
+.period-buttons button{
+    background:#eee;
+    color:#333;
+    padding:8px 13px
+}
+
+.period-buttons button.active{
+    background:#222;
+    color:#fff
+}
+
+.period-navigation{
+    display:flex;
+    align-items:center;
+    gap:10px
+}
+
+.period-label{
+    min-width:190px;
+    text-align:center;
+    font-size:14px;
+    font-weight:700
+}
+
+.chart-section{
+    margin-bottom:30px
+}
+
+.chart-section:last-child{
+    margin-bottom:0
+}
+
+.chart-wrapper{
+    position:relative;
+    width:100%;
+    height:330px;
+    touch-action:pan-y
+}
+
+/* 動画 */
+
+.video-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:14px
+}
+
+.video-controls{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+    align-items:center
+}
+
+.filter-area{
+    position:relative
+}
+
+.dropdown{
+    position:absolute;
+    top:calc(100% + 6px);
+    left:0;
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:12px;
+    box-shadow:0 8px 25px rgba(0,0,0,.12);
+    padding:12px;
+    width:300px;
+    z-index:50;
+    display:none
+}
+
+.dropdown.show{
+    display:block
+}
+
+.dropdown-title{
+    font-size:13px;
+    font-weight:700;
+    margin-bottom:8px
+}
+
+.dropdown-group{
+    margin-bottom:12px
+}
+
+.dropdown-group:last-child{
+    margin-bottom:0
+}
+
+.dropdown-group-title{
+    font-size:12px;
+    font-weight:700;
+    color:#777;
+    margin-bottom:6px
+}
+
+.checkbox-grid{
+    display:flex;
+    gap:5px;
+    flex-wrap:wrap
+}
+
+.checkbox-label{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    background:#f7f7f7;
+    border-radius:7px;
+    padding:6px 8px;
+    font-size:11px;
+    cursor:pointer
+}
+
+.checkbox-label input{
+    width:auto;
+    padding:0
+}
+
+.filter-selected{
+    margin-top:9px;
+    font-size:11px;
+    color:#888
+}
+
+.sort-area{
+    position:relative
+}
+
+.sort-menu{
+    position:absolute;
+    top:calc(100% + 6px);
+    right:0;
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:12px;
+    box-shadow:0 8px 25px rgba(0,0,0,.12);
+    width:180px;
+    padding:6px;
+    z-index:50;
+    display:none
+}
+
+.sort-menu.show{
+    display:block
+}
+
+.sort-option{
+    width:100%;
+    text-align:left;
+    background:#fff;
+    color:#333;
+    padding:9px 10px;
+    border-radius:7px
+}
+
+.sort-option:hover{
+    background:#f3f3f3
+}
+
+.sort-option.active{
+    background:#eee;
+    font-weight:700
+}
+
+.filter-note{
+    font-size:12px;
+    color:#888;
+    margin-bottom:12px
+}
+
+.video-list{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:16px
+}
+
+.video-item{
+    border:1px solid #eee;
+    border-radius:12px;
+    overflow:hidden;
+    background:#fff
+}
+
+.video-thumb{
+    width:100%;
+    aspect-ratio:16/9;
+    object-fit:cover;
+    background:#eee;
+    display:block
+}
+
+.video-info{
+    padding:12px
+}
+
+.video-title{
+    font-weight:700;
+    font-size:14px;
+    line-height:1.5;
+    margin-bottom:5px
+}
+
+.video-date{
+    color:#888;
+    font-size:12px;
+    margin-bottom:5px
+}
+
+.video-meta{
+    color:#777;
+    font-size:11px;
+    margin-bottom:9px
+}
+
+.video-tags{
+    display:flex;
+    gap:4px;
+    flex-wrap:wrap;
+    margin:7px 0
+}
+
+.video-tag{
+    font-size:10px;
+    background:#f1f1f1;
+    border-radius:999px;
+    padding:3px 6px;
+    color:#555
+}
+
+.video-more,
+.record-more{
+    text-align:center;
+    margin-top:12px
+}
+
+/* 登録者記録 */
+
+.record-list{
+    display:flex;
+    flex-direction:column
+}
+
+.record-header,
+.record-row{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    align-items:center;
+    gap:10px
+}
+
+.record-header{
+    color:#999;
+    font-size:11px;
+    padding-bottom:7px;
+    border-bottom:1px solid #eee
+}
+
+.record-row{
+    padding:12px 0;
+    border-bottom:1px solid #eee
+}
+
+.record-row:last-child{
+    border-bottom:0
+}
+
+.record-date{
+    font-weight:700
+}
+
+.record-new{
+    color:#555
+}
+
+.record-total{
+    font-weight:700
+}
+
+.empty{
+    text-align:center;
+    padding:30px;
+    color:#888
+}
+
+@media(max-width:800px){
+    .stats{
+        gap:8px
+    }
+
+    .stat{
+        padding:13px
+    }
+
+    .stat-value{
+        font-size:20px
+    }
+
+    .video-list{
+        grid-template-columns:repeat(2,1fr)
+    }
+
+    .chart-wrapper{
+        height:290px
+    }
+}
+
+@media(max-width:550px){
+    .container{
+        padding:12px
+    }
+
+    header h1{
+        font-size:23px
+    }
+
+    .card{
+        padding:15px;
+        border-radius:13px
+    }
+
+    .stats{
+        gap:6px
+    }
+
+    .stat{
+        padding:11px 8px
+    }
+
+    .stat-label{
+        font-size:11px
+    }
+
+    .stat-value{
+        font-size:17px
+    }
+
+    .stat-sub{
+        font-size:10px
+    }
+
+    .video-list{
+        grid-template-columns:repeat(2,1fr);
+        gap:8px
+    }
+
+    .video-info{
+        padding:8px
+    }
+
+    .video-title{
+        font-size:12px
+    }
+
+    .video-date,
+    .video-meta{
+        font-size:10px
+    }
+
+    .period-label{
+        min-width:140px;
+        font-size:12px
+    }
+
+    .chart-wrapper{
+        height:260px
+    }
+
+    .dropdown{
+        width:calc(100vw - 40px);
+        max-width:300px
+    }
+
+    .chart-stats{
+        display:block;
+        margin-left:0;
+        margin-top:3px
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<header>
+    <h1>#切り抜くぞニアジョイ</h1>
+    <p>YouTube Analytics　｜　チャンネル開始日：2026年4月3日</p>
+</header>
+
+<!-- 上部統計 -->
+
+<div class="stats">
+
+    <div class="stat">
+        <div class="stat-label">現在の登録者数</div>
+        <div class="stat-value" id="currentSubscribers">---</div>
+        <div class="stat-sub" id="currentDate">---</div>
+    </div>
+
+    <div class="stat">
+        <div class="stat-label">最新日の登録者増加数</div>
+        <div class="stat-value">
+            <span id="latestIncrease">---</span>
+            <span style="font-size:14px;color:#aaa;font-weight:500">
+                （平均 <span id="allTimeAverage">---</span>）
+            </span>
+        </div>
+        <div class="stat-sub" id="latestIncreaseDate">---</div>
+    </div>
+
+    <div class="stat">
+        <div class="stat-label">動画本数</div>
+        <div class="stat-value" id="videoCount">---</div>
+        <div class="stat-sub">登録済み動画</div>
+    </div>
+
+</div>
+
+<div class="trend-comment" id="trendComment">
+    データを分析しています……
+</div>
+
+
+<!-- 登録者推移 -->
+
+<div class="card">
+
+    <div class="card-title">📈 登録者推移</div>
+
+    <!-- 期間選択と日付移動 -->
+    <div class="chart-controls">
+
+        <div class="period-buttons">
+            <button onclick="setPeriod(7)" id="period7">7日</button>
+            <button onclick="setPeriod(30)" id="period30">30日</button>
+            <button onclick="setPeriod(90)" id="period90">90日</button>
+            <button onclick="setPeriod('all')" id="periodAll">全期間</button>
+        </div>
+
+        <div class="period-navigation">
+            <button class="secondary small" onclick="movePeriod(-1)">←</button>
+            <div class="period-label" id="periodLabel">---</div>
+            <button class="secondary small" onclick="movePeriod(1)">→</button>
+        </div>
+
+    </div>
+
+
+    <!-- 累計 -->
+
+    <div class="chart-section">
+
+        <div class="chart-name">
+            累計登録者数
+        </div>
+
+        <div class="chart-wrapper" id="subscriberChartTouch">
+            <canvas id="subscriberChart"></canvas>
+        </div>
+
+    </div>
+
+
+    <!-- 新規 -->
+
+    <div class="chart-section">
+
+        <div class="chart-name">
+            新規登録者数
+            <span class="chart-stats">
+                平均 <span id="periodAverage">0.0</span>人/日
+                ｜ 増加 <span id="periodIncrease">0</span>人
+            </span>
+        </div>
+
+        <div class="chart-wrapper" id="increaseChartTouch">
+            <canvas id="increaseChart"></canvas>
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- 動画記録 -->
+
+<div class="card">
+
+    <div class="video-header">
+
+        <div class="card-title" style="margin:0">
+            🎬 動画記録
+        </div>
+
+        <div class="video-controls">
+
+            <!-- 絞り込み -->
+            <div class="filter-area">
+
+                <button class="secondary small" onclick="toggleFilterMenu()">
+                    絞り込み
+                </button>
+
+                <div class="dropdown" id="filterDropdown">
+
+                    <div class="dropdown-title">
+                        タグで絞り込み
+                    </div>
+
+                    <div class="dropdown-group">
+
+                        <div class="dropdown-group-title">
+                            メンバー
+                        </div>
+
+                        <div class="checkbox-grid" id="memberFilters"></div>
+
+                    </div>
+
+                    <div class="dropdown-group">
+
+                        <div class="dropdown-group-title">
+                            動画の長さ
+                        </div>
+
+                        <div class="checkbox-grid" id="lengthFilters"></div>
+
+                    </div>
+
+                    <div class="dropdown-group">
+
+                        <div class="dropdown-group-title">
+                            その他
+                        </div>
+
+                        <div class="checkbox-grid" id="otherFilters"></div>
+
+                    </div>
+
+                    <div class="filter-selected" id="filterSelectedText">
+                        絞り込み条件なし
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- 並び替え -->
+
+            <div class="sort-area">
+
+                <button class="secondary small" onclick="toggleSortMenu()">
+                    並び替え
+                </button>
+
+                <div class="sort-menu" id="sortMenu">
+
+                    <button class="sort-option" onclick="setSort('new')">
+                        新しい順
+                    </button>
+
+                    <button class="sort-option" onclick="setSort('old')">
+                        古い順
+                    </button>
+
+                    <button class="sort-option" onclick="setSort('long')">
+                        時間が長い順
+                    </button>
+
+                    <button class="sort-option" onclick="setSort('short')">
+                        時間が短い順
+                    </button>
+
+                    <button class="sort-option" onclick="setSort('popular')">
+                        人気順
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="filter-note" id="videoFilterNote"></div>
+
+    <div id="activeFilterArea" style="display:none;margin-bottom:12px">
+
+        <span style="font-size:12px;color:#888">
+            絞り込み条件：
+        </span>
+
+        <span id="activeFilterText" style="font-size:12px;font-weight:700"></span>
+
+        <button
+            class="secondary small"
+            onclick="clearVideoFilters()"
+            style="margin-left:7px"
+        >
+            絞り込み解除
+        </button>
+
+    </div>
+
+
+    <div id="videoList" class="video-list"></div>
+
+    <div class="video-more">
+        <button
+            class="secondary small"
+            id="videoMoreButton"
+            onclick="toggleMoreVideos()"
+        >
+            もっと見る
+        </button>
+    </div>
+
+</div>
+
+
+<!-- 登録者記録 -->
+
+<div class="card">
+
+    <div class="card-title">
+        👤 登録者記録
+    </div>
+
+    <div class="record-header">
+        <div>日付</div>
+        <div>登録者増加</div>
+        <div>累計登録者</div>
+    </div>
+
+    <div id="subscriberRecordList" class="record-list"></div>
+
+    <div class="record-more">
+        <button
+            class="secondary small"
+            id="subscriberMoreButton"
+            onclick="toggleMoreSubscribers()"
+        >
+            もっと見る
+        </button>
+    </div>
+
+</div>
+
+
+<!-- 自動取得について -->
+
+<div class="card">
+
+    <div class="card-title">
+        ⚙️ 自動取得
+    </div>
+
+    <div style="font-size:13px;color:#777;line-height:1.7">
+        このページのデータはYouTube APIから自動取得されます。<br>
+        登録者数・動画情報・再生回数などを定期的に更新します。
+    </div>
+
+</div>
+
+</div>
+
+
+<script>
+
+/* ========================================
+   基本設定
+======================================== */
+
+const CHANNEL_ID = "UCiLmCoftZHWXSFuQlnEJSsQ";
+
+/*
+    GitHub Actionsが生成するデータ。
+
+    将来的には data.json をここから読む。
+*/
+const DATA_URL = "./data.json";
+
+
+let data = {
+    subscribers: [],
+    videos: []
+};
+
+let currentPeriod = 30;
+let periodOffset = 0;
+
+let subscriberChart = null;
+let increaseChart = null;
+
+let showAllVideos = false;
+let showAllSubscribers = false;
+
+let selectedVideoTags = [];
+
+let currentSort = "new";
+
+
+/* ========================================
+   初期化
+======================================== */
+
+document.addEventListener("DOMContentLoaded", async () => {
+
+    await loadData();
+
+    renderAll();
+
+    setupSwipe("subscriberChartTouch");
+    setupSwipe("increaseChartTouch");
+
+});
+
+
+/* ========================================
+   データ読み込み
+======================================== */
+
+async function loadData(){
+
+    try{
+
+        const response = await fetch(
+            DATA_URL + "?t=" + Date.now()
+        );
+
+        if(!response.ok){
+            throw new Error("data.json not found");
+        }
+
+        const parsed = await response.json();
+
+        data.subscribers =
+            Array.isArray(parsed.subscribers)
+                ? parsed.subscribers
+                : [];
+
+        data.videos =
+            Array.isArray(parsed.videos)
+                ? parsed.videos
+                : [];
+
+        data.videos =
+            data.videos.map(v => ({
+                ...v,
+                tags:Array.isArray(v.tags)
+                    ? v.tags
+                    : []
+            }));
+
+        sortSubscribers();
+
+    }catch(error){
+
+        console.warn(
+            "data.jsonを読み込めませんでした。",
+            error
+        );
+
+        data = {
+            subscribers:[],
+            videos:[]
+        };
+
+    }
+
+}
+
+
+/* ========================================
+   登録者
+======================================== */
+
+function sortSubscribers(){
+
+    data.subscribers.sort(
+        (a,b) =>
+            new Date(a.date) -
+            new Date(b.date)
+    );
+
+}
+
+
+function getDailyIncrease(index){
+
+    if(index <= 0) return null;
+
+    return (
+        Number(data.subscribers[index].count) -
+        Number(data.subscribers[index-1].count)
+    );
+
+}
+
+
+function getAverageIncrease(){
+
+    if(data.subscribers.length < 2){
+        return 0;
+    }
+
+    let values = [];
+
+    for(let i=1;i<data.subscribers.length;i++){
+
+        values.push(
+            getDailyIncrease(i)
+        );
+
+    }
+
+    return values.reduce(
+        (a,b)=>a+b,0
+    ) / values.length;
+
+}
+
+
+/* ========================================
+   動画時間
+======================================== */
+
+function parseDuration(value){
+
+    if(!value) return 0;
+
+    /*
+        1:10
+        17:32
+        1:10:10
+    */
+
+    const parts =
+        String(value)
+            .split(":")
+            .map(Number);
+
+    if(parts.some(isNaN)) return 0;
+
+    if(parts.length === 2){
+
+        return parts[0] * 60 + parts[1];
+
+    }
+
+    if(parts.length === 3){
+
+        return (
+            parts[0] * 3600 +
+            parts[1] * 60 +
+            parts[2]
+        );
+
+    }
+
+    return 0;
+
+}
+
+
+function formatDuration(seconds){
+
+    seconds = Number(seconds) || 0;
+
+    const h =
+        Math.floor(seconds / 3600);
+
+    const m =
+        Math.floor(
+            (seconds % 3600) / 60
+        );
+
+    const s =
+        seconds % 60;
+
+    if(h > 0){
+
+        return `${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+
+    }
+
+    return `${m}:${String(s).padStart(2,"0")}`;
+
+}
+
+
+/* ========================================
+   タグ
+======================================== */
+
+function getAllVideoTags(){
+
+    const tags = [];
+
+    data.videos.forEach(v => {
+
+        (v.tags || []).forEach(tag => {
+
+            if(!tags.includes(tag)){
+                tags.push(tag);
+            }
+
+        });
+
+    });
+
+    return tags;
+
+}
+
+
+function renderFilterChoices(){
+
+    const all =
+        getAllVideoTags();
+
+    const members = [
+        "逢田珠里依",
+        "市原愛弓",
+        "江角怜音",
+        "大信田美月",
+        "大西葵",
+        "小澤愛実",
+        "髙橋舞",
+        "藤沢莉子",
+        "村山結香",
+        "山田杏佳",
+        "山野愛月"
+    ];
+
+    const lengths = [
+        "５分以内",
+        "１０分以内",
+        "３０分以内",
+        "３０分以上"
+    ];
+
+    renderFilterGroup(
+        "memberFilters",
+        members
+    );
+
+    renderFilterGroup(
+        "lengthFilters",
+        lengths
+    );
+
+    const others =
+        all.filter(
+            x =>
+                !members.includes(x) &&
+                !lengths.includes(x)
+        );
+
+    renderFilterGroup(
+        "otherFilters",
+        others
+    );
+
+}
+
+
+function renderFilterGroup(id,tags){
+
+    const el =
+        document.getElementById(id);
+
+    el.innerHTML =
+        tags.map(tag => {
+
+            const checked =
+                selectedVideoTags.includes(tag)
+                    ? "checked"
+                    : "";
+
+            return `
+                <label class="checkbox-label">
+                    <input
+                        type="checkbox"
+                        value="${escapeHTML(tag)}"
+                        ${checked}
+                        onchange="toggleVideoFilter('${escapeJS(tag)}')"
+                    >
+                    ${escapeHTML(tag)}
+                </label>
+            `;
+
+        }).join("");
+
+}
+
+
+/*
+    長さタグは通常タグとは別に判定。
+
+    ５分以内
+    １０分以内
+    ３０分以内
+    ３０分以上
+*/
+
+function videoMatchesTag(video,tag){
+
+    const seconds =
+        Number(video.durationSeconds) ||
+        parseDuration(video.duration);
+
+    if(tag === "５分以内"){
+        return seconds <= 5 * 60;
+    }
+
+    if(tag === "１０分以内"){
+        return seconds <= 10 * 60;
+    }
+
+    if(tag === "３０分以内"){
+        return seconds <= 30 * 60;
+    }
+
+    if(tag === "３０分以上"){
+        return seconds >= 30 * 60;
+    }
+
+    return (video.tags || []).includes(tag);
+
+}
+
+
+function videoMatchesFilters(video){
+
+    return selectedVideoTags.every(
+        tag =>
+            videoMatchesTag(video,tag)
+    );
+
+}
+
+
+function toggleVideoFilter(tag){
+
+    if(
+        selectedVideoTags.includes(tag)
+    ){
+
+        selectedVideoTags =
+            selectedVideoTags.filter(
+                t => t !== tag
+            );
+
+    }else{
+
+        selectedVideoTags.push(tag);
+
+    }
+
+    showAllVideos = false;
+
+    renderVideoList();
+
+}
+
+
+function clearVideoFilters(){
+
+    selectedVideoTags = [];
+
+    showAllVideos = false;
+
+    renderVideoList();
+
+}
+
+
+function toggleFilterMenu(){
+
+    const menu =
+        document.getElementById(
+            "filterDropdown"
+        );
+
+    menu.classList.toggle("show");
+
+    document
+        .getElementById("sortMenu")
+        .classList.remove("show");
+
+}
+
+
+/* ========================================
+   並び替え
+======================================== */
+
+function toggleSortMenu(){
+
+    document
+        .getElementById("sortMenu")
+        .classList.toggle("show");
+
+    document
+        .getElementById("filterDropdown")
+        .classList.remove("show");
+
+}
+
+
+function setSort(type){
+
+    currentSort = type;
+
+    document
+        .getElementById("sortMenu")
+        .classList.remove("show");
+
+    showAllVideos = false;
+
+    renderVideoList();
+
+}
+
+
+function sortVideos(videos){
+
+    const result = [...videos];
+
+    if(currentSort === "new"){
+
+        result.sort(
+            (a,b) =>
+                new Date(b.date) -
+                new Date(a.date)
+        );
+
+    }
+
+    else if(currentSort === "old"){
+
+        result.sort(
+            (a,b) =>
+                new Date(a.date) -
+                new Date(b.date)
+        );
+
+    }
+
+    else if(currentSort === "long"){
+
+        result.sort(
+            (a,b) =>
+                getVideoDuration(b) -
+                getVideoDuration(a)
+        );
+
+    }
+
+    else if(currentSort === "short"){
+
+        result.sort(
+            (a,b) =>
+                getVideoDuration(a) -
+                getVideoDuration(b)
+        );
+
+    }
+
+    else if(currentSort === "popular"){
+
+        result.sort(
+            (a,b) =>
+                Number(b.viewCount || 0) -
+                Number(a.viewCount || 0)
+        );
+
+    }
+
+    return result;
+
+}
+
+
+function getVideoDuration(video){
+
+    return (
+        Number(video.durationSeconds) ||
+        parseDuration(video.duration)
+    );
+
+}
+
+
+/* ========================================
+   動画一覧
+======================================== */
+
+function renderVideoList(){
+
+    renderFilterChoices();
+
+    const filtered =
+        data.videos.filter(
+            video =>
+                videoMatchesFilters(video)
+        );
+
+    const sorted =
+        sortVideos(filtered);
+
+    const list =
+        showAllVideos
+            ? sorted
+            : sorted.slice(0,4);
+
+    const note =
+        document.getElementById(
+            "videoFilterNote"
+        );
+
+    note.textContent =
+        `${filtered.length}本`;
+
+    if(selectedVideoTags.length){
+
+        note.textContent =
+            `${filtered.length}本`;
+
+    }
+
+    const activeArea =
+        document.getElementById(
+            "activeFilterArea"
+        );
+
+    const activeText =
+        document.getElementById(
+            "activeFilterText"
+        );
+
+    if(selectedVideoTags.length){
+
+        activeArea.style.display = "block";
+
+        activeText.textContent =
+            selectedVideoTags.join(" / ");
+
+    }else{
+
+        activeArea.style.display = "none";
+
+    }
+
+
+    const el =
+        document.getElementById(
+            "videoList"
+        );
+
+    if(!filtered.length){
+
+        el.innerHTML =
+            '<div class="empty" style="grid-column:1/-1">条件に一致する動画がありません。</div>';
+
+    }else{
+
+        el.innerHTML =
+            list.map(video => {
+
+                const duration =
+                    video.durationSeconds
+                        ? formatDuration(
+                            video.durationSeconds
+                        )
+                        : formatDuration(
+                            parseDuration(
+                                video.duration
+                            )
+                        );
+
+                const views =
+                    Number(video.viewCount);
+
+                return `
+                    <div class="video-item">
+
+                        <img
+                            class="video-thumb"
+                            src="${video.thumbnail || ""}"
+                            alt=""
+                        >
+
+                        <div class="video-info">
+
+                            <div class="video-title">
+                                ${escapeHTML(
+                                    video.title || ""
+                                )}
+                            </div>
+
+                            <div class="video-date">
+                                ${formatDate(
+                                    video.date
+                                )}
+                            </div>
+
+                            <div class="video-meta">
+                                ⏱ ${duration}
+                                ${
+                                    Number.isFinite(views)
+                                    ? `　▶ ${formatNumber(views)}回`
+                                    : ""
+                                }
+                            </div>
+
+                            ${
+                                (video.tags || []).length
+                                ?
+                                `
+                                <div class="video-tags">
+                                    ${video.tags.map(tag =>
+                                        `<span class="video-tag">
+                                            ${escapeHTML(tag)}
+                                        </span>`
+                                    ).join("")}
+                                </div>
+                                `
+                                :
+                                ""
+                            }
+
+                        </div>
+
+                    </div>
+                `;
+
+            }).join("");
+
+    }
+
+
+    const moreButton =
+        document.getElementById(
+            "videoMoreButton"
+        );
+
+    moreButton.style.display =
+        filtered.length > 4
+            ? ""
+            : "none";
+
+    moreButton.textContent =
+        showAllVideos
+            ? "閉じる"
+            : "もっと見る";
+
+}
+
+
+/* ========================================
+   登録者記録
+======================================== */
+
+function renderSubscriberList(){
+
+    const el =
+        document.getElementById(
+            "subscriberRecordList"
+        );
+
+    if(!data.subscribers.length){
+
+        el.innerHTML =
+            '<div class="empty">まだ登録者データがありません。</div>';
+
+        return;
+
+    }
+
+    const items =
+        [...data.subscribers]
+            .reverse();
+
+    const list =
+        showAllSubscribers
+            ? items
+            : items.slice(0,5);
+
+    el.innerHTML =
+        list.map(item => {
+
+            const i =
+                data.subscribers.findIndex(
+                    x => x.date === item.date
+                );
+
+            const inc =
+                getDailyIncrease(i);
+
+            return `
+                <div class="record-row">
+
+                    <div class="record-date">
+                        ${formatDate(item.date)}
+                    </div>
+
+                    <div class="record-new">
+                        ${
+                            inc === null
+                                ? "—"
+                                : formatSigned(inc) + "人"
+                        }
+                    </div>
+
+                    <div class="record-total">
+                        ${formatNumber(item.count)}人
+                    </div>
+
+                </div>
+            `;
+
+        }).join("");
+
+
+    const button =
+        document.getElementById(
+            "subscriberMoreButton"
+        );
+
+    button.style.display =
+        items.length > 5
+            ? ""
+            : "none";
+
+    button.textContent =
+        showAllSubscribers
+            ? "閉じる"
+            : "もっと見る";
+
+}
+
+
+function toggleMoreSubscribers(){
+
+    showAllSubscribers =
+        !showAllSubscribers;
+
+    renderSubscriberList();
+
+}
+
+
+/* ========================================
+   統計
+======================================== */
+
+function renderStats(){
+
+    document.getElementById(
+        "videoCount"
+    ).textContent =
+        `${data.videos.length}本`;
+
+
+    if(!data.subscribers.length){
+
+        document.getElementById(
+            "currentSubscribers"
+        ).textContent = "---";
+
+        return;
+
+    }
+
+
+    const latest =
+        data.subscribers[
+            data.subscribers.length - 1
+        ];
+
+    document.getElementById(
+        "currentSubscribers"
+    ).textContent =
+        `${formatNumber(latest.count)}人`;
+
+    document.getElementById(
+        "currentDate"
+    ).textContent =
+        formatDate(latest.date);
+
+
+    const inc =
+        getDailyIncrease(
+            data.subscribers.length - 1
+        );
+
+    document.getElementById(
+        "latestIncrease"
+    ).textContent =
+        inc === null
+            ? "—"
+            : formatSigned(inc) + "人";
+
+    document.getElementById(
+        "latestIncreaseDate"
+    ).textContent =
+        `${formatDate(latest.date)}の増加数`;
+
+
+    document.getElementById(
+        "allTimeAverage"
+    ).textContent =
+        `${getAverageIncrease().toFixed(1)}人/日`;
+
+}
+
+
+/* ========================================
+   自動分析
+======================================== */
+
+function getAverageForLastDays(days){
+
+    if(data.subscribers.length < 2){
+        return 0;
+    }
+
+    const values = [];
+
+    const start =
+        Math.max(
+            1,
+            data.subscribers.length - days
+        );
+
+    for(
+        let i=start;
+        i<data.subscribers.length;
+        i++
+    ){
+
+        values.push(
+            getDailyIncrease(i)
+        );
+
+    }
+
+    if(!values.length) return 0;
+
+    return values.reduce(
+        (a,b)=>a+b,0
+    ) / values.length;
+
+}
+
+
+function getSumForLastDays(days){
+
+    if(data.subscribers.length < 2){
+        return 0;
+    }
+
+    const start =
+        Math.max(
+            1,
+            data.subscribers.length - days
+        );
+
+    let sum = 0;
+
+    for(
+        let i=start;
+        i<data.subscribers.length;
+        i++
+    ){
+
+        sum += getDailyIncrease(i);
+
+    }
+
+    return sum;
+
+}
+
+
+function renderTrendComment(){
+
+    const el =
+        document.getElementById(
+            "trendComment"
+        );
+
+    if(data.subscribers.length < 8){
+
+        el.textContent =
+            "データが蓄積されると、最近の登録者増加ペースや過去との比較を自動で分析します。";
+
+        return;
+
+    }
+
+
+    const avg7 =
+        getAverageForLastDays(7);
+
+    const avg14 =
+        getAverageForLastDays(14);
+
+    const avg30 =
+        getAverageForLastDays(30);
+
+
+    const previous7Start =
+        Math.max(
+            1,
+            data.subscribers.length - 14
+        );
+
+    const previous7End =
+        Math.max(
+            1,
+            data.subscribers.length - 7
+        );
+
+    let previous7Values = [];
+
+    for(
+        let i=previous7Start;
+        i<previous7End;
+        i++
+    ){
+
+        previous7Values.push(
+            getDailyIncrease(i)
+        );
+
+    }
+
+    const previous7 =
+        previous7Values.length
+            ? previous7Values.reduce(
+                (a,b)=>a+b,0
+            ) / previous7Values.length
+            : 0;
+
+
+    let comparison = "";
+
+    if(previous7 > 0){
+
+        const ratio =
+            avg7 / previous7;
+
+        if(ratio >= 1.2){
+
+            comparison =
+                `前の7日間と比べて約${ratio.toFixed(1)}倍のペースで、最近は勢いが増しています。`;
+
+        }else if(ratio <= .8){
+
+            comparison =
+                `前の7日間と比べて約${Math.round((1-ratio)*100)}%減少しており、最近はやや落ち着いています。`;
+
+        }else{
+
+            comparison =
+                `前の7日間と比べても、大きな変化はなく安定したペースです。`;
+
+        }
+
+    }
+
+
+    const recent =
+        getSumForLastDays(7);
+
+    const recentText =
+        `直近7日間では${recent >= 0 ? "+" : ""}${recent}人、平均${avg7.toFixed(1)}人/日の増加です。`;
+
+
+    el.textContent =
+        `📊 ${recentText} ${comparison}`;
+
+}
+
+
+/* ========================================
+   グラフ
+======================================== */
+
+function setPeriod(period){
+
+    currentPeriod = period;
+
+    periodOffset = 0;
+
+    renderCharts();
+
+}
+
+
+function updatePeriodButtons(){
+
+    document
+        .querySelectorAll(".period-buttons button")
+        .forEach(
+            b => b.classList.remove("active")
+        );
+
+    const id =
+        currentPeriod === "all"
+            ? "periodAll"
+            : `period${currentPeriod}`;
+
+    const el =
+        document.getElementById(id);
+
+    if(el){
+        el.classList.add("active");
+    }
+
+}
+
+
+function movePeriod(direction){
+
+    if(currentPeriod === "all"){
+        return;
+    }
+
+    periodOffset += direction;
+
+    periodOffset =
+        Math.max(
+            -30,
+            Math.min(30,periodOffset)
+        );
+
+    renderCharts();
+
+}
+
+
+function getChartRange(){
+
+    if(!data.subscribers.length){
+
+        return {
+            start:null,
+            end:null
+        };
+
+    }
+
+    const dates =
+        data.subscribers.map(
+            x=>x.date
+        );
+
+    if(currentPeriod === "all"){
+
+        return {
+            start:dates[0],
+            end:dates[dates.length-1]
+        };
+
+    }
+
+    const latest =
+        new Date(
+            dates[dates.length-1]
+        );
+
+    const end =
+        new Date(latest);
+
+    end.setDate(
+        end.getDate() +
+        periodOffset * currentPeriod
+    );
+
+    const start =
+        new Date(end);
+
+    start.setDate(
+        start.getDate() -
+        currentPeriod +
+        1
+    );
+
+    return {
+        start:toDateString(start),
+        end:toDateString(end)
+    };
+
+}
+
+
+function getDatesBetween(start,end){
+
+    const out = [];
+
+    let d =
+        new Date(start);
+
+    const last =
+        new Date(end);
+
+    while(d <= last){
+
+        out.push(
+            toDateString(d)
+        );
+
+        d.setDate(
+            d.getDate()+1
+        );
+
+    }
+
+    return out;
+
+}
+
+
+function renderCharts(){
+
+    updatePeriodButtons();
+
+    if(subscriberChart){
+
+        subscriberChart.destroy();
+
+        subscriberChart = null;
+
+    }
+
+    if(increaseChart){
+
+        increaseChart.destroy();
+
+        increaseChart = null;
+
+    }
+
+
+    if(!data.subscribers.length){
+
+        document.getElementById(
+            "periodLabel"
+        ).textContent = "データなし";
+
+        return;
+
+    }
+
+
+    const range =
+        getChartRange();
+
+    document.getElementById(
+        "periodLabel"
+    ).textContent =
+        `${formatDate(range.start)} ～ ${formatDate(range.end)}`;
+
+
+    const dates =
+        getDatesBetween(
+            range.start,
+            range.end
+        );
+
+
+    const labels =
+        dates.map(
+            formatShortDate
+        );
+
+
+    const subscriberValues = [];
+    const increaseValues = [];
+    const videoDays = [];
+
+
+    dates.forEach(date => {
+
+        const i =
+            data.subscribers.findIndex(
+                x => x.date === date
+            );
+
+        if(i !== -1){
+
+            subscriberValues.push(
+                data.subscribers[i].count
+            );
+
+            const inc =
+                getDailyIncrease(i);
+
+            increaseValues.push(
+                inc === null
+                    ? 0
+                    : inc
+            );
+
+        }else{
+
+            subscriberValues.push(null);
+
+            increaseValues.push(0);
+
+        }
+
+
+        videoDays.push(
+            data.videos.some(
+                v => v.date === date
+            )
+        );
+
+    });
+
+
+    /* 期間内平均・増加数 */
+
+    const validIncreases =
+        increaseValues.filter(
+            (v,i) =>
+                data.subscribers.some(
+                    s => s.date === dates[i]
+                )
+        );
+
+    const periodTotal =
+        validIncreases.reduce(
+            (a,b)=>a+b,0
+        );
+
+    const periodAverage =
+        validIncreases.length
+            ? periodTotal / validIncreases.length
+            : 0;
+
+
+    document.getElementById(
+        "periodAverage"
+    ).textContent =
+        periodAverage.toFixed(1);
+
+    document.getElementById(
+        "periodIncrease"
+    ).textContent =
+        formatSigned(periodTotal);
+
+
+    /* 累計登録者 */
+
+    subscriberChart =
+        new Chart(
+            document.getElementById(
+                "subscriberChart"
+            ),
+            {
+                type:"line",
+
+                data:{
+                    labels,
+
+                    datasets:[{
+
+                        label:"累計登録者数",
+
+                        data:subscriberValues,
+
+                        borderColor:"#d1ad28",
+
+                        backgroundColor:
+                            "rgba(255,226,120,.30)",
+
+                        borderWidth:2,
+
+                        /*
+                            動画投稿日でも
+                            赤丸を大きくしない
+                        */
+                        pointRadius:3,
+
+                        pointBackgroundColor:
+                            videoDays.map(
+                                v =>
+                                    v
+                                        ? "#e53935"
+                                        : "#d1ad28"
+                            ),
+
+                        pointBorderColor:"#fff",
+
+                        pointBorderWidth:2,
+
+                        tension:.25,
+
+                        fill:true,
+
+                        spanGaps:false
+
+                    }]
+
+                },
+
+                options:chartOptions(
+                    "累計登録者数"
+                )
+
+            }
+        );
+
+
+    /* 新規登録者 */
+
+    increaseChart =
+        new Chart(
+            document.getElementById(
+                "increaseChart"
+            ),
+            {
+                type:"bar",
+
+                data:{
+                    labels,
+
+                    datasets:[{
+
+                        label:"新規登録者数",
+
+                        data:increaseValues,
+
+                        backgroundColor:
+                            increaseValues.map(
+                                (v,i) =>
+                                    videoDays[i]
+                                        ? "#e53935"
+                                        : "#f3d66b"
+                            ),
+
+                        borderRadius:4,
+
+                        borderSkipped:false
+
+                    }]
+
+                },
+
+                options:chartOptions(
+                    "新規登録者数"
+                )
+
+            }
+        );
+
+}
+
+
+/*
+    Y軸は期間によって極端に変わらないよう
+    全期間のデータから最大値を取得。
+*/
+
+function getGlobalSubscriberMax(){
+
+    if(!data.subscribers.length){
+        return 10;
+    }
+
+    const max =
+        Math.max(
+            ...data.subscribers.map(
+                x => Number(x.count)
+            )
+        );
+
+    return Math.max(
+        10,
+        Math.ceil(max * 1.1)
+    );
+
+}
+
+
+function getGlobalIncreaseMax(){
+
+    if(data.subscribers.length < 2){
+        return 10;
+    }
+
+    const values = [];
+
+    for(
+        let i=1;
+        i<data.subscribers.length;
+        i++
+    ){
+
+        values.push(
+            getDailyIncrease(i)
+        );
+
+    }
+
+    const max =
+        Math.max(
+            10,
+            ...values
+        );
+
+    return Math.ceil(
+        max * 1.2
+    );
+
+}
+
+
+function chartOptions(label){
+
+    const max =
+        label === "累計登録者数"
+            ? getGlobalSubscriberMax()
+            : getGlobalIncreaseMax();
+
+    return {
+
+        responsive:true,
+
+        maintainAspectRatio:false,
+
+        interaction:{
+            mode:"index",
+            intersect:false
+        },
+
+        plugins:{
+
+            legend:{
+                display:false
+            },
+
+            tooltip:{
+
+                callbacks:{
+
+                    label:ctx =>
+                        `${label}：${formatSigned(ctx.parsed.y)}人`
+                            .replace(
+                                "+0",
+                                "0"
+                            )
+
+                }
+
+            }
+
+        },
+
+        scales:{
+
+            y:{
+
+                beginAtZero:true,
+
+                min:0,
+
+                max:max,
+
+                ticks:{
+                    callback:v =>
+                        formatNumber(v)
+                }
+
+            },
+
+            x:{
+
+                ticks:{
+                    maxRotation:0,
+                    autoSkip:true,
+                    maxTicksLimit:
+                        getMaxTicks()
+                }
+
+            }
+
+        }
+
+    };
+
+}
+
+
+function getMaxTicks(){
+
+    if(currentPeriod === 7){
+        return 7;
+    }
+
+    if(currentPeriod === 30){
+        return 10;
+    }
+
+    if(currentPeriod === 90){
+        return 12;
+    }
+
+    return 15;
+
+}
+
+
+/* ========================================
+   スワイプ
+======================================== */
+
+function setupSwipe(id){
+
+    const area =
+        document.getElementById(id);
+
+    let sx=0;
+    let sy=0;
+
+    area.addEventListener(
+        "touchstart",
+        e => {
+
+            if(e.touches.length){
+
+                sx =
+                    e.touches[0].clientX;
+
+                sy =
+                    e.touches[0].clientY;
+
+            }
+
+        },
+        {passive:true}
+    );
+
+
+    area.addEventListener(
+        "touchend",
+        e => {
+
+            if(!e.changedTouches.length){
+                return;
+            }
+
+            const dx =
+                e.changedTouches[0].clientX -
+                sx;
+
+            const dy =
+                e.changedTouches[0].clientY -
+                sy;
+
+            if(
+                Math.abs(dx)>50 &&
+                Math.abs(dx)>Math.abs(dy)
+            ){
+
+                movePeriod(
+                    dx < 0 ? 1 : -1
+                );
+
+            }
+
+        },
+        {passive:true}
+    );
+
+}
+
+
+/* ========================================
+   全体
+======================================== */
+
+function renderAll(){
+
+    renderStats();
+
+    renderTrendComment();
+
+    renderVideoList();
+
+    renderSubscriberList();
+
+    renderCharts();
+
+}
+
+
+/* ========================================
+   ユーティリティ
+======================================== */
+
+function formatNumber(n){
+
+    return Number(n)
+        .toLocaleString("ja-JP");
+
+}
+
+
+function formatSigned(n){
+
+    n = Number(n) || 0;
+
+    return n > 0
+        ? "+" + formatNumber(n)
+        : formatNumber(n);
+
+}
+
+
+function formatDate(s){
+
+    if(!s) return "---";
+
+    const [
+        y,m,d
+    ] =
+        s.split("-");
+
+    return `${y}/${m}/${d}`;
+
+}
+
+
+function formatShortDate(s){
+
+    const [
+        ,
+        m,
+        d
+    ] =
+        s.split("-");
+
+    return `${Number(m)}/${Number(d)}`;
+
+}
+
+
+function toDateString(d){
+
+    return `${d.getFullYear()}-${String(
+        d.getMonth()+1
+    ).padStart(2,"0")}-${String(
+        d.getDate()
+    ).padStart(2,"0")}`;
+
+}
+
+
+function escapeHTML(t){
+
+    return String(t)
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;")
+        .replace(/'/g,"&#039;");
+
+}
+
+
+function escapeJS(t){
+
+    return String(t)
+        .replace(/\\/g,"\\\\")
+        .replace(/'/g,"\\'");
+
+}
+
+
+/* ========================================
+   メニュー外クリック
+======================================== */
+
+document.addEventListener(
+    "click",
+    e => {
+
+        if(
+            !e.target.closest(".filter-area")
+        ){
+
+            document
+                .getElementById(
+                    "filterDropdown"
+                )
+                .classList.remove("show");
+
+        }
+
+        if(
+            !e.target.closest(".sort-area")
+        ){
+
+            document
+                .getElementById(
+                    "sortMenu"
+                )
+                .classList.remove("show");
+
+        }
+
+    }
+);
+
+</script>
+
+</body>
+</html>
