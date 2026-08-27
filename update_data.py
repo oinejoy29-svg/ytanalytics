@@ -6,6 +6,20 @@ from datetime import datetime, timezone
 API_KEY = os.environ["YOUTUBE_API_KEY"]
 CHANNEL_ID = "UCiLmCoftZHWXSFuQlnEJSsQ"
 
+MEMBERS = [
+    "逢田珠里依",
+    "市原愛弓",
+    "江角怜音",
+    "大信田美月",
+    "大西葵",
+    "小澤愛実",
+    "髙橋舞",
+    "藤沢莉子",
+    "村山結香",
+    "山田杏佳",
+    "山野愛月"
+]
+
 DATA_FILE = "data.json"
 
 
@@ -129,7 +143,7 @@ def get_video_details(video_ids):
                     "viewCount": int(
                         item["statistics"].get("viewCount", 0)
                     ),
-                    "tags": []
+                    "tags": detect_member_tags(title)
                 }
             )
 
@@ -258,3 +272,19 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+def detect_member_tags(title):
+    """
+    動画タイトルに含まれているメンバー名を
+    自動的にタグとして追加する
+    """
+
+    if not title:
+        return []
+
+    tags = []
+    for member in MEMBERS:
+        if member in title:
+            tags.append(member)
+
+    return tags
