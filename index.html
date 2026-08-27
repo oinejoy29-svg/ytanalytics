@@ -2985,20 +2985,14 @@ function renderOtherTagList(){
 }
 
 
-function renderOtherTagChoices(){
+window.renderOtherTagChoices = function(){
 
     const el =
-        document.getElementById(
-            "otherTagChoices"
-        );
+        document.getElementById("otherTagChoices");
 
     if(!el) return;
 
     const tags = [];
-
-    /*
-        data.jsonに保存されているタグ
-    */
 
     data.videos.forEach(video => {
 
@@ -3008,50 +3002,32 @@ function renderOtherTagChoices(){
                 !MEMBERS.includes(tag) &&
                 !tags.includes(tag)
             ){
-
                 tags.push(tag);
-
             }
 
         });
 
     });
-
-
-    /*
-        手動追加したその他タグ
-    */
 
     Object.values(manualTagData).forEach(manual => {
 
         (manual.otherTags || []).forEach(tag => {
 
             if(!tags.includes(tag)){
-
                 tags.push(tag);
-
             }
 
         });
 
     });
 
-
-    /*
-        現在編集中の動画に
-        すでについているタグは候補から除外
-    */
-
     const choices =
         tags.filter(
-            tag =>
-                !editingOtherTags.includes(tag)
+            tag => !editingOtherTags.includes(tag)
         );
-
 
     el.innerHTML =
         choices.map(tag => `
-
             <button
                 type="button"
                 class="secondary small"
@@ -3059,11 +3035,9 @@ function renderOtherTagChoices(){
             >
                 ${escapeHTML(tag)}
             </button>
-
         `).join("");
 
-}
-
+};
 
 function selectOtherTag(tag){
 
