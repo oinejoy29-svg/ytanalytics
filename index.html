@@ -377,7 +377,18 @@ button.small{
 .video-meta{
     color:#777;
     font-size:11px;
-    margin-bottom:9px
+    margin-bottom:9px;
+}
+
+@media(max-width:550px){
+
+    .video-meta{
+        display:flex;
+        flex-direction:column;
+        align-items:flex-start;
+        gap:2px;
+    }
+
 }
 
 .video-meta-row{
@@ -1734,17 +1745,17 @@ function renderVideoList(){
                 ${formatDate(video.date)}
             </div>
 
-            <div class="video-meta-row">
+           <div class="video-meta">
 
-                <div class="video-meta">
-                    ⏱ ${duration}
-                    ${
-                        Number.isFinite(views)
-                        ? `　▶ ${formatNumber(views)}回`
-                        : ""
-                    }
-                </div>
+    <span>⏱ ${duration}</span>
 
+    ${
+        Number.isFinite(views)
+        ? `<span>▶ ${formatNumber(views)}回</span>`
+        : ""
+    }
+
+</div>
                 <button
                     class="secondary small video-tag-edit"
                     onclick="openTagEditor('${escapeJS(video.id)}')"
