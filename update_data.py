@@ -47,7 +47,7 @@ def get_channel():
     data = youtube_api(
         "channels",
         {
-            "part": "snippet,statistics",
+            "part": "snippet,statistics,contentDetails",
             "id": CHANNEL_ID
         }
     )
