@@ -1715,56 +1715,49 @@ function renderVideoList(){
                 const views =
                     Number(video.viewCount);
 
-                return `
-                    <div class="video-item">
+     return `
+    <div class="video-item">
 
-                        <img
-                            class="video-thumb"
-                            src="${video.thumbnail || ""}"
-                            alt=""
-                        >
+        <img
+            class="video-thumb"
+            src="${video.thumbnail || ""}"
+            alt=""
+        >
 
-                        <div class="video-info">
+        <div class="video-info">
 
-                            <div class="video-title">
-                                ${escapeHTML(
-                                    video.title || ""
-                                )}
-                            </div>
+            <div class="video-title">
+                ${escapeHTML(video.title || "")}
+            </div>
 
-                            <div class="video-date">
-                                ${formatDate(
-                                    video.date
-                                )}
-                            </div>
+            <div class="video-date">
+                ${formatDate(video.date)}
+            </div>
 
-                           <div class="video-meta-row">
+            <div class="video-meta-row">
 
-    <div class="video-meta">
-        ⏱ ${duration}
-        ${
-            Number.isFinite(views)
-            ? `　▶ ${formatNumber(views)}回`
-            : ""
-        }
+                <div class="video-meta">
+                    ⏱ ${duration}
+                    ${
+                        Number.isFinite(views)
+                        ? `　▶ ${formatNumber(views)}回`
+                        : ""
+                    }
+                </div>
+
+                <button
+                    class="secondary small video-tag-edit"
+                    onclick="openTagEditor('${escapeJS(video.id)}')"
+                >
+                    タグ編集
+                </button>
+
+            </div>
+
+        </div>
+
     </div>
-
-    <button
-        class="secondary small video-tag-edit"
-        onclick="openTagEditor('${escapeJS(video.id)}')"
-    >
-        タグ編集
-    </button>
-
-</div>
-
-                           
-                          
-
-                       
-
-                    </div>
-                `;
+`;
 
             }).join("");
 
