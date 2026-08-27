@@ -2899,7 +2899,8 @@ let editingOtherTags = [];
         memberTags
     );
 
-    renderOtherTagList();
+  renderOtherTagList();
+renderOtherTagChoices();
 
     document.getElementById(
         "tagSaveMessage"
@@ -2960,6 +2961,80 @@ function renderOtherTagList(){
         return;
 
     }
+
+    function renderOtherTagChoices(){
+
+    const el =
+        document.getElementById("otherTagChoices");
+
+    if(!el) return;
+
+    const tags = [];
+
+    // 全動画の自動・保存タグ
+    data.videos.forEach(video => {
+
+        (video.tags || []).forEach(tag => {
+
+            if(
+                !MEMBERS.includes(tag) &&
+                !tags.includes(tag)
+            ){
+
+                tags.push(tag);
+
+            }
+
+        });
+
+    });
+
+    // 手動で追加したその他タグ
+    Object.values(manualTagData).forEach(manual => {
+
+        (manual.otherTags || []).forEach(tag => {
+
+            if(!tags.includes(tag)){
+
+                tags.push(tag);
+
+            }
+
+        });
+
+    });
+
+    // 現在編集中の動画についているタグは除外
+    const choices =
+        tags.filter(
+            tag => !editingOtherTags.includes(tag)
+        );
+
+    el.innerHTML =
+        choices.map(tag => `
+            <button
+                type="button"
+                class="secondary small"
+                onclick="selectOtherTag('${escapeJS(tag)}')"
+            >
+                ${escapeHTML(tag)}
+            </button>
+        `).join("");
+
+}
+    function selectOtherTag(tag){
+
+    if(!editingOtherTags.includes(tag)){
+
+        editingOtherTags.push(tag);
+
+    }
+
+    renderOtherTagList();
+    renderOtherTagChoices();
+
+}
+    
 
     el.innerHTML =
         editingOtherTags.map((tag,index) => {
