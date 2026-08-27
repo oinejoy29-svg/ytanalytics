@@ -1776,17 +1776,19 @@ function renderVideoList(){
             ? ""
             : "none";
 
-    moreButton.textContent =
+        moreButton.textContent =
         showAllVideos
             ? "閉じる"
             : "もっと見る";
-    function toggleMoreVideos(){
+
+}
+
+
+function toggleMoreVideos(){
 
     showAllVideos = !showAllVideos;
 
     renderVideoList();
-
-}
 
 }
 
