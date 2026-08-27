@@ -1302,9 +1302,23 @@ function getAllVideoTags(){
 
     const tags = [];
 
-    data.videos.forEach(v => {
+    // 自動取得・data.jsonに保存されているタグ
+    data.videos.forEach(video => {
 
-        (v.tags || []).forEach(tag => {
+        (video.tags || []).forEach(tag => {
+
+            if(!tags.includes(tag)){
+                tags.push(tag);
+            }
+
+        });
+
+    });
+
+    // 手動追加したタグ
+    Object.values(manualTagData).forEach(manual => {
+
+        (manual.otherTags || []).forEach(tag => {
 
             if(!tags.includes(tag)){
                 tags.push(tag);
@@ -1317,7 +1331,6 @@ function getAllVideoTags(){
     return tags;
 
 }
-
 
 function renderFilterChoices(){
 
