@@ -380,6 +380,19 @@ button.small{
     margin-bottom:9px
 }
 
+.video-meta-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+}
+
+.video-tag-edit{
+    flex-shrink:0;
+    padding:4px 8px;
+    font-size:11px;
+}
+    
 .video-tags{
     display:flex;
     gap:4px;
@@ -1725,31 +1738,27 @@ function renderVideoList(){
                                 )}
                             </div>
 
-                            <div class="video-meta">
-                                ⏱ ${duration}
-                                ${
-                                    Number.isFinite(views)
-                                    ? `　▶ ${formatNumber(views)}回`
-                                    : ""
-                                }
-                            </div>
+                           <div class="video-meta-row">
 
-                            ${
-                               getVideoTags(video).length
-                                ?
-                                `
-                                <div class="video-tags">
-                                    ${getVideoTags(video).map(tag =>
-                                        `<span class="video-tag">
-                                            ${escapeHTML(tag)}
-                                        </span>`
-                                    ).join("")}
-                                </div>
-                                `
-                                :
-                                ""
-                            }
-                            
+    <div class="video-meta">
+        ⏱ ${duration}
+        ${
+            Number.isFinite(views)
+            ? `　▶ ${formatNumber(views)}回`
+            : ""
+        }
+    </div>
+
+    <button
+        class="secondary small video-tag-edit"
+        onclick="openTagEditor('${escapeJS(video.id)}')"
+    >
+        タグ編集
+    </button>
+
+</div>
+
+                           
                             <button
                                 class="secondary small"
                                 onclick="openTagEditor('${escapeJS(video.id)}')"
