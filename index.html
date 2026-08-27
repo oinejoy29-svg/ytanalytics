@@ -3203,24 +3203,33 @@ function renderOtherTagList(){
                 class="other-tag-list"
             ></div>
 
-            <div class="add-tag-area">
+           <div class="add-tag-area">
 
-                <input
-                    id="newOtherTag"
-                    type="text"
-                    placeholder="例：SHOWROOM"
-                    maxlength="30"
-                >
+    <div
+        id="otherTagChoices"
+        style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px"
+    ></div>
 
-                <button
-                    class="secondary small"
-                    onclick="addOtherTag()"
-                >
-                    ＋追加
-                </button>
+    <div style="display:flex;gap:6px">
 
-            </div>
+        <input
+            id="newOtherTag"
+            type="text"
+            placeholder="例：SHOWROOM"
+            maxlength="30"
+            style="flex:1"
+        >
 
+        <button
+            class="secondary small"
+            onclick="addOtherTag()"
+        >
+            ＋追加
+        </button>
+
+    </div>
+
+</div>
         </div>
 
 
