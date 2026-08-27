@@ -544,6 +544,153 @@ button.small{
         margin-top:3px
     }
 }
+    .tag-modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    z-index:100;
+}
+
+.tag-modal.show{
+    display:flex;
+}
+
+.tag-modal-content{
+    width:100%;
+    max-width:520px;
+    max-height:90vh;
+    overflow-y:auto;
+    background:#fff;
+    border-radius:16px;
+    padding:20px;
+    box-shadow:0 15px 50px rgba(0,0,0,.2);
+}
+
+.tag-modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:10px;
+    margin-bottom:20px;
+}
+
+.tag-modal-title{
+    font-size:18px;
+    font-weight:700;
+}
+
+.tag-modal-video-title{
+    margin-top:5px;
+    color:#888;
+    font-size:12px;
+    line-height:1.5;
+}
+
+.tag-editor-section{
+    margin-bottom:20px;
+}
+
+.tag-editor-section-title{
+    font-size:13px;
+    font-weight:700;
+    margin-bottom:8px;
+}
+
+.tag-member-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+}
+
+.tag-member-label{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    background:#f5f5f5;
+    border-radius:8px;
+    padding:7px 9px;
+    font-size:12px;
+    cursor:pointer;
+}
+
+.tag-member-label input{
+    width:auto;
+    margin:0;
+}
+
+.other-tag-list{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-bottom:10px;
+}
+
+.other-tag-item{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    background:#f1f1f1;
+    border-radius:999px;
+    padding:5px 8px;
+    font-size:11px;
+}
+
+.other-tag-remove{
+    border:0;
+    background:transparent;
+    color:#888;
+    padding:0;
+    font-size:14px;
+    cursor:pointer;
+}
+
+.add-tag-area{
+    display:flex;
+    gap:6px;
+}
+
+.add-tag-area input{
+    flex:1;
+    min-width:0;
+    border:1px solid #ddd;
+    border-radius:8px;
+    padding:8px 10px;
+    font-size:13px;
+}
+
+.tag-save-message{
+    min-height:20px;
+    font-size:12px;
+    color:#777;
+    margin-bottom:10px;
+}
+
+.tag-modal-actions{
+    display:flex;
+    justify-content:flex-end;
+    gap:8px;
+}
+
+@media(max-width:550px){
+
+    .tag-modal{
+        padding:10px;
+    }
+
+    .tag-modal-content{
+        padding:15px;
+        border-radius:13px;
+    }
+
+    .tag-member-label{
+        font-size:11px;
+    }
+
+}
 </style>
 </head>
 
@@ -851,6 +998,7 @@ const CHANNEL_ID = "UCiLmCoftZHWXSFuQlnEJSsQ";
     将来的には data.json をここから読む。
 */
 const DATA_URL = "./data.json";
+    const TAG_API_URL = "https://script.google.com/macros/s/AKfycbxiGshkr6Mv2HtfyQra5SY8adXAFCzDCaoWqXEImi4Oq2MVQzOUsZ10-vPSeUNmQdnP/exec";
 
 
 let data = {
@@ -870,6 +1018,9 @@ let showAllSubscribers = false;
 let selectedVideoTags = [];
 
 let currentSort = "new";
+
+let manualTagData = {};
+let editingVideoId = null;
 
 
 /* ========================================
@@ -896,15 +1047,17 @@ async function loadData(){
 
     try{
 
-        const response = await fetch(
-            DATA_URL + "?t=" + Date.now()
-        );
+        const response =
+            await fetch(
+                DATA_URL + "?t=" + Date.now()
+            );
 
         if(!response.ok){
             throw new Error("data.json not found");
         }
 
-        const parsed = await response.json();
+        const parsed =
+            await response.json();
 
         data.subscribers =
             Array.isArray(parsed.subscribers)
@@ -919,12 +1072,14 @@ async function loadData(){
         data.videos =
             data.videos.map(v => ({
                 ...v,
-                tags:Array.isArray(v.tags)
+                tags: Array.isArray(v.tags)
                     ? v.tags
                     : []
             }));
 
         sortSubscribers();
+
+        await loadManualTags();
 
     }catch(error){
 
@@ -934,11 +1089,74 @@ async function loadData(){
         );
 
         data = {
-            subscribers:[],
-            videos:[]
+            subscribers: [],
+            videos: []
         };
 
+        manualTagData = {};
+
     }
+
+}
+
+    async function loadManualTags(){
+
+    try{
+
+        const response =
+            await fetch(
+                TAG_API_URL + "?t=" + Date.now()
+            );
+
+        if(!response.ok){
+            throw new Error("タグデータ取得失敗");
+        }
+
+        manualTagData =
+            await response.json();
+
+    }catch(error){
+
+        console.warn(
+            "手動タグを読み込めませんでした。",
+            error
+        );
+
+        manualTagData = {};
+
+    }
+
+}
+
+    function getVideoTags(video){
+
+    const autoTags =
+        Array.isArray(video.tags)
+            ? video.tags
+            : [];
+
+    const manual =
+        manualTagData[video.id];
+
+    /*
+        手動編集済み動画は
+        手動設定を優先
+    */
+
+    if(manual){
+
+        return [
+            ...new Set([
+                ...(manual.memberTags || []),
+                ...(manual.otherTags || [])
+            ])
+        ];
+
+    }
+
+    return [
+        ...new Set(autoTags)
+    ];
 
 }
 
@@ -1488,11 +1706,11 @@ function renderVideoList(){
                             </div>
 
                             ${
-                                (video.tags || []).length
+                               getVideoTags(video).length
                                 ?
                                 `
                                 <div class="video-tags">
-                                    ${video.tags.map(tag =>
+                                    ${getVideoTags(video).map(tag =>
                                         `<span class="video-tag">
                                             ${escapeHTML(tag)}
                                         </span>`
@@ -1511,6 +1729,14 @@ function renderVideoList(){
             }).join("");
 
     }
+
+    <button
+    class="secondary small"
+    onclick="openTagEditor('${escapeJS(video.id)}')"
+    style="margin-top:8px"
+>
+    タグ編集
+</button>
 
 
     const moreButton =
@@ -2590,8 +2816,375 @@ document.addEventListener(
 
     }
 );
+let editingOtherTags = [];
+    function openTagEditor(videoId){
 
+    const video =
+        data.videos.find(
+            v => v.id === videoId
+        );
+
+    if(!video) return;
+
+    editingVideoId = videoId;
+
+    const saved =
+        manualTagData[videoId];
+
+    /*
+        初回編集時は
+        自動判定されたメンバーをそのまま表示
+    */
+
+    const memberTags =
+        saved
+            ? [...(saved.memberTags || [])]
+            : [...getVideoTags(video).filter(
+                tag => MEMBERS.includes(tag)
+            )];
+
+    editingOtherTags =
+        saved
+            ? [...(saved.otherTags || [])]
+            : [...getVideoTags(video).filter(
+                tag => !MEMBERS.includes(tag)
+            )];
+
+    document.getElementById(
+        "tagModalVideoTitle"
+    ).textContent =
+        video.title || "";
+
+    renderTagMemberChoices(
+        memberTags
+    );
+
+    renderOtherTagList();
+
+    document.getElementById(
+        "tagSaveMessage"
+    ).textContent = "";
+
+    document
+        .getElementById("tagModal")
+        .classList.add("show");
+
+}
+    function renderTagMemberChoices(selected){
+
+    const el =
+        document.getElementById(
+            "tagMemberChoices"
+        );
+
+    el.innerHTML =
+        MEMBERS.map(member => {
+
+            const checked =
+                selected.includes(member)
+                    ? "checked"
+                    : "";
+
+            return `
+                <label class="tag-member-label">
+
+                    <input
+                        type="checkbox"
+                        value="${escapeHTML(member)}"
+                        ${checked}
+                    >
+
+                    ${escapeHTML(member)}
+
+                </label>
+            `;
+
+        }).join("");
+
+}
+
+function renderOtherTagList(){
+
+    const el =
+        document.getElementById(
+            "otherTagList"
+        );
+
+    if(!editingOtherTags.length){
+
+        el.innerHTML =
+            `<span style="font-size:12px;color:#aaa">
+                その他タグなし
+            </span>`;
+
+        return;
+
+    }
+
+    el.innerHTML =
+        editingOtherTags.map((tag,index) => {
+
+            return `
+                <span class="other-tag-item">
+
+                    ${escapeHTML(tag)}
+
+                    <button
+                        class="other-tag-remove"
+                        onclick="removeOtherTag(${index})"
+                    >
+                        ×
+                    </button>
+
+                </span>
+            `;
+
+        }).join("");
+
+}
+    function addOtherTag(){
+
+    const input =
+        document.getElementById(
+            "newOtherTag"
+        );
+
+    const value =
+        input.value.trim();
+
+    if(!value) return;
+
+    if(!editingOtherTags.includes(value)){
+
+        editingOtherTags.push(value);
+
+    }
+
+    input.value = "";
+
+    renderOtherTagList();
+
+}
+    function removeOtherTag(index){
+
+    editingOtherTags.splice(
+        index,
+        1
+    );
+
+    renderOtherTagList();
+
+}
+    async function saveTagEditor(){
+
+    if(!editingVideoId){
+        return;
+    }
+
+    const checkboxes =
+        document.querySelectorAll(
+            "#tagMemberChoices input[type='checkbox']"
+        );
+
+    const memberTags =
+        Array.from(checkboxes)
+            .filter(
+                checkbox =>
+                    checkbox.checked
+            )
+            .map(
+                checkbox =>
+                    checkbox.value
+            );
+
+    const message =
+        document.getElementById(
+            "tagSaveMessage"
+        );
+
+    message.textContent =
+        "保存中……";
+
+    try{
+
+        const response =
+            await fetch(
+                TAG_API_URL,
+                {
+                    method:"POST",
+
+                    headers:{
+                        "Content-Type":
+                            "text/plain;charset=utf-8"
+                    },
+
+                    body:JSON.stringify({
+                        videoId:
+                            editingVideoId,
+
+                        memberTags:
+                            memberTags,
+
+                        otherTags:
+                            editingOtherTags
+                    })
+                }
+            );
+
+        const result =
+            await response.json();
+
+        if(!result.success){
+
+            throw new Error(
+                result.error ||
+                "保存に失敗しました"
+            );
+
+        }
+
+        /*
+            ローカルの表示も即更新
+        */
+
+        manualTagData[
+            editingVideoId
+        ] = {
+            memberTags:
+                memberTags,
+
+            otherTags:
+                [...editingOtherTags]
+        };
+
+        message.textContent =
+            "保存しました！";
+
+        renderVideoList();
+
+        setTimeout(
+            closeTagEditor,
+            500
+        );
+
+    }catch(error){
+
+        console.error(error);
+
+        message.textContent =
+            "保存に失敗しました。もう一度お試しください。";
+
+    }
+
+}
+    function closeTagEditor(){
+
+    document
+        .getElementById("tagModal")
+        .classList.remove("show");
+
+    editingVideoId = null;
+
+    editingOtherTags = [];
+
+}
 </script>
+<div id="tagModal" class="tag-modal">
 
+    <div class="tag-modal-content">
+
+        <div class="tag-modal-header">
+            <div>
+                <div class="tag-modal-title">
+                    タグを編集
+                </div>
+
+                <div
+                    id="tagModalVideoTitle"
+                    class="tag-modal-video-title"
+                ></div>
+            </div>
+
+            <button
+                class="secondary small"
+                onclick="closeTagEditor()"
+            >
+                ×
+            </button>
+        </div>
+
+
+        <div class="tag-editor-section">
+
+            <div class="tag-editor-section-title">
+                メンバー
+            </div>
+
+            <div
+                id="tagMemberChoices"
+                class="tag-member-grid"
+            ></div>
+
+        </div>
+
+
+        <div class="tag-editor-section">
+
+            <div class="tag-editor-section-title">
+                その他タグ
+            </div>
+
+            <div
+                id="otherTagList"
+                class="other-tag-list"
+            ></div>
+
+            <div class="add-tag-area">
+
+                <input
+                    id="newOtherTag"
+                    type="text"
+                    placeholder="例：SHOWROOM"
+                    maxlength="30"
+                >
+
+                <button
+                    class="secondary small"
+                    onclick="addOtherTag()"
+                >
+                    ＋追加
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="tagSaveMessage"
+            class="tag-save-message"
+        ></div>
+
+
+        <div class="tag-modal-actions">
+
+            <button
+                class="secondary"
+                onclick="closeTagEditor()"
+            >
+                キャンセル
+            </button>
+
+            <button
+                onclick="saveTagEditor()"
+            >
+                保存
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
 </body>
 </html>
