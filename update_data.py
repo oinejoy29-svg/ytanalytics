@@ -8,6 +8,7 @@ CHANNEL_ID = "UCiLmCoftZHWXSFuQlnEJSsQ"
 
 MEMBERS = [
     "逢田珠里依",
+    "天野香乃愛",
     "市原愛弓",
     "江角怜音",
     "大信田美月",
@@ -140,10 +141,12 @@ def get_video_details(video_ids):
                     "thumbnail": item["snippet"]["thumbnails"]["high"]["url"],
                     "duration": iso_duration_to_hms(duration),
                     "durationSeconds": iso_duration_to_seconds(duration),
-                    "viewCount": int(
-                        item["statistics"].get("viewCount", 0)
-                    ),
-                    "tags": detect_member_tags(title)
+                   "viewCount": int(
+    item["statistics"].get("viewCount", 0)
+),
+"tags": detect_member_tags(
+    item["snippet"]["title"]
+)
                 }
             )
 
@@ -270,9 +273,6 @@ def main():
     )
 
 
-if __name__ == "__main__":
-    main()
-
 def detect_member_tags(title):
     """
     動画タイトルに含まれているメンバー名を
@@ -283,8 +283,13 @@ def detect_member_tags(title):
         return []
 
     tags = []
+
     for member in MEMBERS:
         if member in title:
             tags.append(member)
 
     return tags
+
+
+if __name__ == "__main__":
+    main()
