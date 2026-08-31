@@ -380,72 +380,71 @@ button.small{
 .video-title{
     font-weight:700;
     font-size:14px;
-    line-height:1.45;
+    line-height:1.5;
     margin-bottom:7px;
 }
 
-.video-date{
+/* 日付＋再生回数 */
+.video-date-views{
+    display:flex;
+    align-items:center;
+    gap:8px;
     color:#888;
     font-size:12px;
+    line-height:1.4;
 }
 
-.video-meta-row{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:8px;
-    margin-top:6px;
-}
-
-.video-meta{
-    color:#777;
-    font-size:11px;
-    display:flex;
-    flex-direction:column;
-    gap:3px;
-    margin:0;
-}
-
-.video-main-meta{
-    display:flex;
-    align-items:center;
-    gap:7px;
-    flex-wrap:wrap;
-}
-
-.video-duration{
-    color:#777;
-}
-
+/* 再生回数 */
 .video-views{
     color:#777;
 }
 
+/* 時間＋ランキング＋メニュー */
+.video-bottom-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:5px;
+    min-height:42px;
+}
+
+/* 動画時間 */
+.video-duration{
+    color:#777;
+    font-size:12px;
+    white-space:nowrap;
+}
+
+/* ランキング */
 .video-ranking{
     color:#888;
     font-size:12px;
     white-space:nowrap;
-    margin-left:auto;
 }
 
-/* 右端の3点メニュー */
-
+/* 3点メニュー */
 .video-menu-button{
+    margin-left:auto;
     flex-shrink:0;
-    width:32px;
-    height:42px;
+
+    width:58px;
+    height:58px;
+
     padding:0;
     border:0;
-    border-radius:16px;
+    border-radius:20px;
+
     background:#eee;
     color:#999;
+
     display:flex;
     align-items:center;
     justify-content:center;
+
     cursor:pointer;
-    font-size:22px;
+
+    font-size:24px;
     line-height:1;
-    letter-spacing:1px;
 }
 
 .video-menu-button:hover{
@@ -619,31 +618,20 @@ button.small{
         margin-bottom:5px;
     }
 
-    .video-date{
+    /* 日付＋再生回数 */
+    .video-date-views{
         font-size:10px;
+        gap:6px;
     }
 
-    .video-meta-row{
-        display:flex !important;
-        flex-direction:row !important;
-        align-items:flex-end !important;
-        justify-content:space-between !important;
-        width:100% !important;
-        gap:4px;
-        margin-top:5px;
+    /* 動画時間＋ランキング＋メニュー */
+    .video-bottom-row{
+        gap:7px;
+        margin-top:3px;
+        min-height:38px;
     }
 
-    .video-meta{
-        display:flex !important;
-        flex-direction:column !important;
-        align-items:flex-start !important;
-        gap:2px;
-        margin:0 !important;
-        min-width:0;
-    }
-
-    .video-main-meta{
-        gap:5px;
+    .video-duration{
         font-size:10px;
     }
 
@@ -651,11 +639,12 @@ button.small{
         font-size:10px;
     }
 
+    /* 3点メニュー */
     .video-menu-button{
-        width:28px;
-        height:38px;
-        border-radius:14px;
-        font-size:19px;
+        width:48px;
+        height:48px;
+        border-radius:18px;
+        font-size:20px;
     }
 
     .period-label{
@@ -1891,75 +1880,72 @@ function renderVideoList(){
                     data.videos.length;
 
 
-                return `
-                    <div class="video-item">
+        return `
+    <div class="video-item">
 
-                        <img
-                            class="video-thumb"
-                            src="${video.thumbnail || ""}"
-                            alt=""
-                        >
+        <img
+            class="video-thumb"
+            src="${video.thumbnail || ""}"
+            alt=""
+        >
 
-                        <div class="video-info">
+        <div class="video-info">
 
-                            <div class="video-title">
-                                ${escapeHTML(video.title || "")}
-                            </div>
+            <div class="video-title">
+                ${escapeHTML(video.title || "")}
+            </div>
 
-                            <div class="video-date">
-                                ${formatDate(video.date)}
-                            </div>
+            <!-- 日付＋再生回数 -->
+            <div class="video-date-views">
 
-                            <div class="video-meta-row">
+                <span class="video-date">
+                    ${formatDate(video.date)}
+                </span>
 
-                                <div class="video-meta">
+                ${
+                    Number.isFinite(views)
+                    ? `
+                        <span class="video-views">
+                            ▶ ${formatNumber(views)}回
+                        </span>
+                    `
+                    : ""
+                }
 
-                                    <div class="video-main-meta">
+            </div>
 
-                                        <span class="video-duration">
-                                            ⏱ ${duration}
-                                        </span>
+            <!-- 時間＋ランキング＋3点メニュー -->
+            <div class="video-bottom-row">
 
-                                        ${
-                                            Number.isFinite(views)
-                                            ? `
-                                                <span class="video-views">
-                                                    ▶ ${formatNumber(views)}回
-                                                </span>
-                                            `
-                                            : ""
-                                        }
+                <span class="video-duration">
+                    ⏱ ${duration}
+                </span>
 
-                                    </div>
+                ${
+                    Number.isFinite(rank)
+                    ? `
+                        <span class="video-ranking">
+                            ♔ ${rank}/${totalVideos}
+                        </span>
+                    `
+                    : ""
+                }
 
-                                    ${
-                                        Number.isFinite(rank)
-                                        ? `
-                                            <span class="video-ranking">
-                                                ${rank}/${totalVideos}
-                                            </span>
-                                        `
-                                        : ""
-                                    }
+                <button
+                    type="button"
+                    class="video-menu-button"
+                    aria-label="タグ編集"
+                    onclick="openTagEditor('${escapeJS(video.id)}')"
+                >
+                    ⋮
+                </button>
 
-                                </div>
+            </div>
 
+        </div>
 
-                                <button
-                                    type="button"
-                                    class="video-menu-button"
-                                    aria-label="メニュー"
-                                    onclick="openTagEditor('${escapeJS(video.id)}')"
-                                >
-                                    ⋮
-                                </button>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-                `;
+    </div>
+`;
 
             }).join("");
 
