@@ -203,6 +203,10 @@ button.small{
 
 /* 動画 */
 
+/* ========================================
+   動画
+======================================== */
+
 .video-header{
     display:flex;
     justify-content:space-between;
@@ -336,17 +340,29 @@ button.small{
     margin-bottom:12px
 }
 
+
+/* 動画一覧 */
+
 .video-list{
     display:grid;
     grid-template-columns:repeat(3,1fr);
-    gap:16px
+    gap:16px;
+
+    /*
+       最初は6本分を表示。
+       それ以上は一覧部分だけスクロール。
+    */
+    max-height:1240px;
+    overflow-y:auto;
+    padding-right:4px;
 }
 
 .video-item{
     border:1px solid #eee;
     border-radius:12px;
     overflow:hidden;
-    background:#fff
+    background:#fff;
+    position:relative;
 }
 
 .video-thumb{
@@ -354,69 +370,88 @@ button.small{
     aspect-ratio:16/9;
     object-fit:cover;
     background:#eee;
-    display:block
+    display:block;
 }
 
 .video-info{
-    padding:12px
+    padding:12px;
 }
 
 .video-title{
     font-weight:700;
     font-size:14px;
-    line-height:1.5;
-    margin-bottom:5px
+    line-height:1.45;
+    margin-bottom:7px;
 }
 
 .video-date{
     color:#888;
     font-size:12px;
-    margin-bottom:5px
 }
 
-.video-meta{
-    color:#777;
-    font-size:11px;
-    margin-bottom:9px;
-}
-
-@media(max-width:550px){
-
-    .video-meta-row{
-        display:flex;
-        align-items:flex-start;
-        justify-content:space-between;
-        gap:6px;
-    }
-
-    .video-meta{
-        display:flex;
-        flex-direction:column;
-        align-items:flex-start;
-        gap:2px;
-        margin-bottom:0;
-        min-width:0;
-    }
-
-    .video-tag-edit{
-        flex-shrink:0;
-        white-space:nowrap;
-    }
-
-}
 .video-meta-row{
     display:flex;
     align-items:center;
     justify-content:space-between;
     gap:8px;
+    margin-top:6px;
 }
 
-.video-tag-edit{
-    flex-shrink:0;
-    padding:4px 8px;
+.video-meta{
+    color:#777;
     font-size:11px;
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+    margin:0;
 }
-    
+
+.video-main-meta{
+    display:flex;
+    align-items:center;
+    gap:7px;
+    flex-wrap:wrap;
+}
+
+.video-duration{
+    color:#777;
+}
+
+.video-views{
+    color:#777;
+}
+
+.video-ranking{
+    color:#888;
+    font-size:12px;
+    white-space:nowrap;
+    margin-left:auto;
+}
+
+/* 右端の3点メニュー */
+
+.video-menu-button{
+    flex-shrink:0;
+    width:32px;
+    height:42px;
+    padding:0;
+    border:0;
+    border-radius:16px;
+    background:#eee;
+    color:#999;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    font-size:22px;
+    line-height:1;
+    letter-spacing:1px;
+}
+
+.video-menu-button:hover{
+    opacity:.8;
+}
+
 .video-tags{
     display:flex;
     gap:4px;
@@ -436,6 +471,22 @@ button.small{
 .record-more{
     text-align:center;
     margin-top:12px
+}
+
+
+/* スクロールバー */
+
+.video-list::-webkit-scrollbar{
+    width:6px;
+}
+
+.video-list::-webkit-scrollbar-thumb{
+    background:#ccc;
+    border-radius:999px;
+}
+
+.video-list::-webkit-scrollbar-track{
+    background:transparent;
 }
 
 /* 登録者記録 */
@@ -510,6 +561,7 @@ button.small{
 }
 
 @media(max-width:550px){
+
     .container{
         padding:12px
     }
@@ -543,22 +595,67 @@ button.small{
         font-size:10px
     }
 
+    /*
+       サムネの横幅・16:9比率は変更しない
+    */
     .video-list{
         grid-template-columns:repeat(2,1fr);
-        gap:8px
+        gap:8px;
+
+        /*
+           3行＝6本分を表示
+        */
+        max-height:1260px;
+        overflow-y:auto;
     }
 
     .video-info{
-        padding:8px
+        padding:8px;
     }
 
     .video-title{
-        font-size:12px
+        font-size:12px;
+        line-height:1.45;
+        margin-bottom:5px;
     }
 
-    .video-date,
+    .video-date{
+        font-size:10px;
+    }
+
+    .video-meta-row{
+        display:flex !important;
+        flex-direction:row !important;
+        align-items:flex-end !important;
+        justify-content:space-between !important;
+        width:100% !important;
+        gap:4px;
+        margin-top:5px;
+    }
+
     .video-meta{
-        font-size:10px
+        display:flex !important;
+        flex-direction:column !important;
+        align-items:flex-start !important;
+        gap:2px;
+        margin:0 !important;
+        min-width:0;
+    }
+
+    .video-main-meta{
+        gap:5px;
+        font-size:10px;
+    }
+
+    .video-ranking{
+        font-size:10px;
+    }
+
+    .video-menu-button{
+        width:28px;
+        height:38px;
+        border-radius:14px;
+        font-size:19px;
     }
 
     .period-label{
@@ -580,6 +677,7 @@ button.small{
         margin-left:0;
         margin-top:3px
     }
+
 }
     .tag-modal{
     position:fixed;
@@ -1693,10 +1791,36 @@ function renderVideoList(){
     const sorted =
         sortVideos(filtered);
 
+    /*
+        再生回数ランキングを計算
+        filteredではなく全動画を対象にする。
+        
+        例：
+        21本中3位 → 3/21
+    */
+    const rankingMap = {};
+
+    const rankingVideos =
+        [...data.videos].sort(
+            (a,b) =>
+                Number(b.viewCount || 0) -
+                Number(a.viewCount || 0)
+        );
+
+    rankingVideos.forEach(
+        (video,index) => {
+            rankingMap[video.id] = index + 1;
+        }
+    );
+
+    /*
+        通常時は6本
+        もっと見る後は全件
+    */
     const list =
         showAllVideos
             ? sorted
-            : sorted.slice(0,4);
+            : sorted.slice(0,6);
 
     const note =
         document.getElementById(
@@ -1705,13 +1829,6 @@ function renderVideoList(){
 
     note.textContent =
         `${filtered.length}本`;
-
-    if(selectedVideoTags.length){
-
-        note.textContent =
-            `${filtered.length}本`;
-
-    }
 
     const activeArea =
         document.getElementById(
@@ -1742,6 +1859,7 @@ function renderVideoList(){
             "videoList"
         );
 
+
     if(!filtered.length){
 
         el.innerHTML =
@@ -1766,55 +1884,86 @@ function renderVideoList(){
                 const views =
                     Number(video.viewCount);
 
-     return `
-    <div class="video-item">
+                const rank =
+                    rankingMap[video.id];
 
-        <img
-            class="video-thumb"
-            src="${video.thumbnail || ""}"
-            alt=""
-        >
+                const totalVideos =
+                    data.videos.length;
 
-        <div class="video-info">
 
-            <div class="video-title">
-                ${escapeHTML(video.title || "")}
-            </div>
+                return `
+                    <div class="video-item">
 
-            <div class="video-date">
-                ${formatDate(video.date)}
-            </div>
+                        <img
+                            class="video-thumb"
+                            src="${video.thumbnail || ""}"
+                            alt=""
+                        >
 
-           <div class="video-meta">
+                        <div class="video-info">
 
-    <span>⏱ ${duration}</span>
+                            <div class="video-title">
+                                ${escapeHTML(video.title || "")}
+                            </div>
 
-    ${
-        Number.isFinite(views)
-        ? `<span>▶ ${formatNumber(views)}回</span>`
-        : ""
-    }
+                            <div class="video-date">
+                                ${formatDate(video.date)}
+                            </div>
 
-</div>
-                <button
-                    class="secondary small video-tag-edit"
-                    onclick="openTagEditor('${escapeJS(video.id)}')"
-                >
-                    タグ編集
-                </button>
+                            <div class="video-meta-row">
 
-            </div>
+                                <div class="video-meta">
 
-        </div>
+                                    <div class="video-main-meta">
 
-    </div>
-`;
+                                        <span class="video-duration">
+                                            ⏱ ${duration}
+                                        </span>
+
+                                        ${
+                                            Number.isFinite(views)
+                                            ? `
+                                                <span class="video-views">
+                                                    ▶ ${formatNumber(views)}回
+                                                </span>
+                                            `
+                                            : ""
+                                        }
+
+                                    </div>
+
+                                    ${
+                                        Number.isFinite(rank)
+                                        ? `
+                                            <span class="video-ranking">
+                                                ${rank}/${totalVideos}
+                                            </span>
+                                        `
+                                        : ""
+                                    }
+
+                                </div>
+
+
+                                <button
+                                    type="button"
+                                    class="video-menu-button"
+                                    aria-label="メニュー"
+                                    onclick="openTagEditor('${escapeJS(video.id)}')"
+                                >
+                                    ⋮
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                `;
 
             }).join("");
 
     }
-
-    
 
 
     const moreButton =
@@ -1822,18 +1971,23 @@ function renderVideoList(){
             "videoMoreButton"
         );
 
+
+    /*
+        6本を超える場合だけ
+        「もっと見る」を表示
+    */
     moreButton.style.display =
-        filtered.length > 4
+        filtered.length > 6
             ? ""
             : "none";
 
-        moreButton.textContent =
+
+    moreButton.textContent =
         showAllVideos
             ? "閉じる"
             : "もっと見る";
 
 }
-
 
 function toggleMoreVideos(){
 
