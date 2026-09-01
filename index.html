@@ -1781,6 +1781,9 @@ function getVideoDuration(video){
 /* ========================================
    動画一覧
 ======================================== */
+/* ========================================
+   動画一覧
+======================================== */
 
 function renderVideoList(){
 
@@ -1789,7 +1792,7 @@ function renderVideoList(){
 
     if(!container) return;
 
-    let filtered = [...videos];
+    let filtered = [...data.videos];
 
     // 期間
     if(currentPeriod !== "all"){
@@ -1833,6 +1836,7 @@ function renderVideoList(){
 
     container.innerHTML = list.map(video => {
 
+        // 再生回数ランキング
         const ranking =
             [...filtered]
                 .sort((a,b) =>
@@ -1903,15 +1907,16 @@ function renderVideoList(){
     // もっと見るボタン
     if(more){
 
-        if(sorted.length > 4 && !showAllVideos){
+        if(sorted.length > 6 && !showAllVideos){
             more.style.display = "block";
         }else{
             more.style.display = "none";
         }
 
     }
-
 }
+
+
 function toggleMoreVideos(){
 
     showAllVideos = !showAllVideos;
@@ -1919,7 +1924,6 @@ function toggleMoreVideos(){
     renderVideoList();
 
 }
-
 
 /* ========================================
    登録者記録
