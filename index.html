@@ -1787,133 +1787,209 @@ function getVideoDuration(video){
 
 function renderVideoList(){
 
-    const container = document.getElementById("videoList");
-    const more = document.getElementById("videoMore");
+    renderFilterChoices();
 
-    if(!container) return;
-
-    let filtered = [...data.videos];
-
-    // 期間
-    if(currentPeriod !== "all"){
-        const days = Number(currentPeriod);
-        const now = new Date();
-
-        filtered = filtered.filter(v => {
-            const d = new Date(v.date);
-            const diff =
-                (now - d) / (1000 * 60 * 60 * 24);
-
-            return diff <= days;
-        });
-    }
-
-    // タグ
-    if(currentTags.length > 0){
-        filtered = filtered.filter(v =>
-            currentTags.every(tag =>
-                (v.tags || []).includes(tag)
-            )
+    const filtered =
+        data.videos.filter(
+            video =>
+                videoMatchesFilters(video)
         );
-    }
 
-    // 並び順
-    const sorted = [...filtered].sort((a,b) => {
+    const sorted =
+        sortVideos(filtered);
 
-        if(sortType === "views"){
-            return Number(b.viewCount || 0)
-                - Number(a.viewCount || 0);
+    /*
+        再生回数ランキングを計算
+        filteredではなく全動画を対象にする。
+
+        例：
+        21本中3位 → 3/21
+    */
+    const rankingMap = {};
+
+    const rankingVideos =
+        [...data.videos].sort(
+            (a,b) =>
+                Number(b.viewCount || 0) -
+                Number(a.viewCount || 0)
+        );
+
+    rankingVideos.forEach(
+        (video,index) => {
+            rankingMap[video.id] = index + 1;
         }
+    );
 
-        return new Date(b.date) - new Date(a.date);
-    });
-
-    // もっと見る前は6本
+    /*
+        通常時は6本
+        もっと見る後は全件
+    */
     const list =
         showAllVideos
             ? sorted
             : sorted.slice(0,6);
 
-    container.innerHTML = list.map(video => {
+    const note =
+        document.getElementById(
+            "videoFilterNote"
+        );
 
-        // 再生回数ランキング
-        const ranking =
-            [...filtered]
-                .sort((a,b) =>
-                    Number(b.viewCount || 0)
-                    - Number(a.viewCount || 0)
-                )
-                .findIndex(v => v.id === video.id) + 1;
+    note.textContent =
+        `${filtered.length}本`;
 
-        return `
-            <div class="video-item">
+    const activeArea =
+        document.getElementById(
+            "activeFilterArea"
+        );
 
-                <img
-                    class="video-thumb"
-                    src="${video.thumbnail}"
-                    alt=""
-                >
+    const activeText =
+        document.getElementById(
+            "activeFilterText"
+        );
 
-                <div class="video-info">
+    if(selectedVideoTags.length){
 
-                    <div class="video-title">
-                        ${video.title}
-                    </div>
+        activeArea.style.display = "block";
 
-                    <div class="video-date">
-                        ${video.date}
-                    </div>
+        activeText.textContent =
+            selectedVideoTags.join(" / ");
 
-                    <div class="video-meta-row">
+    }else{
 
-                        <div class="video-meta">
-                            <span>
-                                ${video.duration}
-                            </span>
-
-                            <span>
-                                ${Number(video.viewCount || 0).toLocaleString()}回
-                            </span>
-                        </div>
-
-                        <div class="video-ranking">
-                            ${ranking}/${filtered.length}
-                        </div>
-
-                        <button
-                            class="video-menu-button"
-                            onclick="openTagEditor('${video.id}')"
-                        >
-                            ⋮
-                        </button>
-
-                    </div>
-
-                    <div class="video-tags">
-                        ${(video.tags || []).map(tag => `
-                            <span class="video-tag">
-                                ${tag}
-                            </span>
-                        `).join("")}
-                    </div>
-
-                </div>
-
-            </div>
-        `;
-
-    }).join("");
-
-    // もっと見るボタン
-    if(more){
-
-        if(sorted.length > 6 && !showAllVideos){
-            more.style.display = "block";
-        }else{
-            more.style.display = "none";
-        }
+        activeArea.style.display = "none";
 
     }
+
+
+    const el =
+        document.getElementById(
+            "videoList"
+        );
+
+
+    if(!filtered.length){
+
+        el.innerHTML =
+            '<div class="empty" style="grid-column:1/-1">条件に一致する動画がありません。</div>';
+
+    }else{
+
+        el.innerHTML =
+            list.map(video => {
+
+                const duration =
+                    video.durationSeconds
+                        ? formatDuration(
+                            video.durationSeconds
+                        )
+                        : formatDuration(
+                            parseDuration(
+                                video.duration
+                            )
+                        );
+
+                const views =
+                    Number(video.viewCount);
+
+                const rank =
+                    rankingMap[video.id];
+
+                const totalVideos =
+                    data.videos.length;
+
+
+                return `
+                    <div class="video-item">
+
+                        <img
+                            class="video-thumb"
+                            src="${video.thumbnail || ""}"
+                            alt=""
+                        >
+
+                        <div class="video-info">
+
+                            <div class="video-title">
+                                ${escapeHTML(video.title || "")}
+                            </div>
+
+                            <!-- 日付＋再生回数 -->
+                            <div class="video-date-views">
+
+                                <span class="video-date">
+                                    ${formatDate(video.date)}
+                                </span>
+
+                                ${
+                                    Number.isFinite(views)
+                                    ? `
+                                        <span class="video-views">
+                                            ▶ ${formatNumber(views)}回
+                                        </span>
+                                    `
+                                    : ""
+                                }
+
+                            </div>
+
+                            <!-- 時間＋ランキング＋3点メニュー -->
+                            <div class="video-bottom-row">
+
+                                <span class="video-duration">
+                                    ⏱ ${duration}
+                                </span>
+
+                                ${
+                                    Number.isFinite(rank)
+                                    ? `
+                                        <span class="video-ranking">
+                                            ♔ ${rank}/${totalVideos}
+                                        </span>
+                                    `
+                                    : ""
+                                }
+
+                                <button
+                                    type="button"
+                                    class="video-menu-button"
+                                    aria-label="タグ編集"
+                                    onclick="openTagEditor('${escapeJS(video.id)}')"
+                                >
+                                    ⋮
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+                `;
+
+            }).join("");
+
+    }
+
+
+    const moreButton =
+        document.getElementById(
+            "videoMoreButton"
+        );
+
+    /*
+        6本を超える場合だけ
+        「もっと見る」を表示
+    */
+    moreButton.style.display =
+        filtered.length > 6
+            ? ""
+            : "none";
+
+
+    moreButton.textContent =
+        showAllVideos
+            ? "閉じる"
+            : "もっと見る";
+
 }
 
 
@@ -1924,6 +2000,8 @@ function toggleMoreVideos(){
     renderVideoList();
 
 }
+
+
 
 /* ========================================
    登録者記録
