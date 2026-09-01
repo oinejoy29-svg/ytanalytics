@@ -349,12 +349,20 @@ button.small{
     gap:16px;
 
     /*
-       最初は6本分を表示。
-       それ以上は一覧部分だけスクロール。
+       最初は6本表示。
+       それ以上は動画一覧部分だけスクロール。
     */
-    max-height:1240px;
+    max-height:720px;
     overflow-y:auto;
     padding-right:4px;
+}
+
+.video-list.expanded{
+    /*
+       もっと見る後は一覧内スクロールを解除
+    */
+    max-height:none;
+    overflow:visible;
 }
 
 .video-item{
@@ -597,16 +605,23 @@ button.small{
     /*
        サムネの横幅・16:9比率は変更しない
     */
+   @media(max-width:550px){
+
     .video-list{
         grid-template-columns:repeat(2,1fr);
         gap:8px;
 
-        /*
-           3行＝6本分を表示
-        */
-        max-height:1260px;
+        /* 6本表示＋一覧内スクロール */
+        max-height:620px;
         overflow-y:auto;
     }
+
+    .video-list.expanded{
+        max-height:none;
+        overflow:visible;
+    }
+
+}
 
     .video-info{
         padding:8px;
@@ -1769,210 +1784,127 @@ function getVideoDuration(video){
 
 function renderVideoList(){
 
-    renderFilterChoices();
+    const list = document.getElementById("videoList");
+    const more = document.getElementById("videoMore");
 
-    const filtered =
-        data.videos.filter(
-            video =>
-                videoMatchesFilters(video)
-        );
+    if(!list) return;
 
-    const sorted =
-        sortVideos(filtered);
+    let filtered = videos.filter(video => {
 
-    /*
-        再生回数ランキングを計算
-        filteredではなく全動画を対象にする。
-        
-        例：
-        21本中3位 → 3/21
-    */
-    const rankingMap = {};
+        const date = new Date(video.date);
 
-    const rankingVideos =
-        [...data.videos].sort(
-            (a,b) =>
-                Number(b.viewCount || 0) -
-                Number(a.viewCount || 0)
-        );
-
-    rankingVideos.forEach(
-        (video,index) => {
-            rankingMap[video.id] = index + 1;
+        if(currentPeriod === "all"){
+            return true;
         }
-    );
 
-    /*
-        通常時は6本
-        もっと見る後は全件
-    */
-    const list =
-        showAllVideos
-            ? sorted
-            : sorted.slice(0,6);
+        const now = new Date();
+        const diff =
+            (now - date) / (1000 * 60 * 60 * 24);
 
-    const note =
-        document.getElementById(
-            "videoFilterNote"
+        return diff <= currentPeriod;
+    });
+
+    if(currentTags.length > 0){
+        filtered = filtered.filter(video =>
+            currentTags.every(tag =>
+                (video.tags || []).includes(tag)
+            )
         );
-
-    note.textContent =
-        `${filtered.length}本`;
-
-    const activeArea =
-        document.getElementById(
-            "activeFilterArea"
-        );
-
-    const activeText =
-        document.getElementById(
-            "activeFilterText"
-        );
-
-    if(selectedVideoTags.length){
-
-        activeArea.style.display = "block";
-
-        activeText.textContent =
-            selectedVideoTags.join(" / ");
-
-    }else{
-
-        activeArea.style.display = "none";
-
     }
 
+    filtered.sort((a,b) => {
 
-    const el =
-        document.getElementById(
-            "videoList"
-        );
+        if(sortType === "date"){
+            return new Date(b.date) - new Date(a.date);
+        }
 
+        if(sortType === "views"){
+            return b.viewCount - a.viewCount;
+        }
 
-    if(!filtered.length){
+        return 0;
+    });
 
-        el.innerHTML =
-            '<div class="empty" style="grid-column:1/-1">条件に一致する動画がありません。</div>';
+    /*
+       再生回数ランキング
+    */
+    const rankingMap = [...filtered]
+        .sort((a,b) => b.viewCount - a.viewCount);
 
-    }else{
+    /*
+       もっと見る前は6本
+       もっと見る後は全件
+    */
+    const displayVideos = showAllVideos
+        ? filtered
+        : filtered.slice(0,6);
 
-        el.innerHTML =
-            list.map(video => {
+    list.innerHTML = displayVideos.map(video => {
 
-                const duration =
-                    video.durationSeconds
-                        ? formatDuration(
-                            video.durationSeconds
-                        )
-                        : formatDuration(
-                            parseDuration(
-                                video.duration
-                            )
-                        );
-
-                const views =
-                    Number(video.viewCount);
-
-                const rank =
-                    rankingMap[video.id];
-
-                const totalVideos =
-                    data.videos.length;
-
+        const ranking =
+            rankingMap.findIndex(v => v.id === video.id) + 1;
 
         return `
-    <div class="video-item">
+            <div class="video-item">
 
-        <img
-            class="video-thumb"
-            src="${video.thumbnail || ""}"
-            alt=""
-        >
-
-        <div class="video-info">
-
-            <div class="video-title">
-                ${escapeHTML(video.title || "")}
-            </div>
-
-            <!-- 日付＋再生回数 -->
-            <div class="video-date-views">
-
-                <span class="video-date">
-                    ${formatDate(video.date)}
-                </span>
-
-                ${
-                    Number.isFinite(views)
-                    ? `
-                        <span class="video-views">
-                            ▶ ${formatNumber(views)}回
-                        </span>
-                    `
-                    : ""
-                }
-
-            </div>
-
-            <!-- 時間＋ランキング＋3点メニュー -->
-            <div class="video-bottom-row">
-
-                <span class="video-duration">
-                    ⏱ ${duration}
-                </span>
-
-                ${
-                    Number.isFinite(rank)
-                    ? `
-                        <span class="video-ranking">
-                            ♔ ${rank}/${totalVideos}
-                        </span>
-                    `
-                    : ""
-                }
-
-                <button
-                    type="button"
-                    class="video-menu-button"
-                    aria-label="タグ編集"
-                    onclick="openTagEditor('${escapeJS(video.id)}')"
+                <img
+                    class="video-thumb"
+                    src="${video.thumbnail}"
+                    alt=""
                 >
-                    ⋮
-                </button>
+
+                <div class="video-info">
+
+                    <div class="video-title">
+                        ${video.title}
+                    </div>
+
+                    <div class="video-date-views">
+                        ${video.date}
+                        <span>・</span>
+                        ${Number(video.viewCount).toLocaleString()}回
+                    </div>
+
+                    <div class="video-bottom-row">
+
+                        <div class="video-duration">
+                            ${video.duration}
+                        </div>
+
+                        <div class="video-ranking">
+                            ${ranking}/${filtered.length}
+                        </div>
+
+                        <button
+                            class="video-menu-button"
+                            onclick="openTagEditor('${video.id}')"
+                        >
+                            ⋮
+                        </button>
+
+                    </div>
+
+                </div>
 
             </div>
-
-        </div>
-
-    </div>
-`;
-
-            }).join("");
-
-    }
-
-
-    const moreButton =
-        document.getElementById(
-            "videoMoreButton"
-        );
-
+        `;
+    }).join("");
 
     /*
-        6本を超える場合だけ
-        「もっと見る」を表示
+       もっと見る後は動画一覧内スクロール解除
     */
-    moreButton.style.display =
-        filtered.length > 6
-            ? ""
-            : "none";
+    if(showAllVideos){
+        list.classList.add("expanded");
+        more.style.display = "none";
+    }else{
+        list.classList.remove("expanded");
 
-
-    moreButton.textContent =
-        showAllVideos
-            ? "閉じる"
-            : "もっと見る";
-
+        if(filtered.length > 6){
+            more.style.display = "block";
+        }else{
+            more.style.display = "none";
+        }
+    }
 }
 
 function toggleMoreVideos(){
