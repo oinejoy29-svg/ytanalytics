@@ -1784,65 +1784,62 @@ function getVideoDuration(video){
 
 function renderVideoList(){
 
-    const list = document.getElementById("videoList");
+    const container = document.getElementById("videoList");
     const more = document.getElementById("videoMore");
 
-    if(!list) return;
+    if(!container) return;
 
-    let filtered = videos.filter(video => {
+    let filtered = [...videos];
 
-        const date = new Date(video.date);
-
-        if(currentPeriod === "all"){
-            return true;
-        }
-
+    // 期間
+    if(currentPeriod !== "all"){
+        const days = Number(currentPeriod);
         const now = new Date();
-        const diff =
-            (now - date) / (1000 * 60 * 60 * 24);
 
-        return diff <= currentPeriod;
-    });
+        filtered = filtered.filter(v => {
+            const d = new Date(v.date);
+            const diff =
+                (now - d) / (1000 * 60 * 60 * 24);
 
+            return diff <= days;
+        });
+    }
+
+    // タグ
     if(currentTags.length > 0){
-        filtered = filtered.filter(video =>
+        filtered = filtered.filter(v =>
             currentTags.every(tag =>
-                (video.tags || []).includes(tag)
+                (v.tags || []).includes(tag)
             )
         );
     }
 
-    filtered.sort((a,b) => {
-
-        if(sortType === "date"){
-            return new Date(b.date) - new Date(a.date);
-        }
+    // 並び順
+    const sorted = [...filtered].sort((a,b) => {
 
         if(sortType === "views"){
-            return b.viewCount - a.viewCount;
+            return Number(b.viewCount || 0)
+                - Number(a.viewCount || 0);
         }
 
-        return 0;
+        return new Date(b.date) - new Date(a.date);
     });
 
-    /*
-       再生回数ランキング
-    */
-    const rankingMap = [...filtered]
-        .sort((a,b) => b.viewCount - a.viewCount);
+    // もっと見る前は6本
+    const list =
+        showAllVideos
+            ? sorted
+            : sorted.slice(0,6);
 
-    /*
-       もっと見る前は6本
-       もっと見る後は全件
-    */
-    const displayVideos = showAllVideos
-        ? filtered
-        : filtered.slice(0,6);
-
-    list.innerHTML = displayVideos.map(video => {
+    container.innerHTML = list.map(video => {
 
         const ranking =
-            rankingMap.findIndex(v => v.id === video.id) + 1;
+            [...filtered]
+                .sort((a,b) =>
+                    Number(b.viewCount || 0)
+                    - Number(a.viewCount || 0)
+                )
+                .findIndex(v => v.id === video.id) + 1;
 
         return `
             <div class="video-item">
@@ -1859,16 +1856,20 @@ function renderVideoList(){
                         ${video.title}
                     </div>
 
-                    <div class="video-date-views">
+                    <div class="video-date">
                         ${video.date}
-                        <span>・</span>
-                        ${Number(video.viewCount).toLocaleString()}回
                     </div>
 
-                    <div class="video-bottom-row">
+                    <div class="video-meta-row">
 
-                        <div class="video-duration">
-                            ${video.duration}
+                        <div class="video-meta">
+                            <span>
+                                ${video.duration}
+                            </span>
+
+                            <span>
+                                ${Number(video.viewCount || 0).toLocaleString()}回
+                            </span>
                         </div>
 
                         <div class="video-ranking">
@@ -1884,29 +1885,33 @@ function renderVideoList(){
 
                     </div>
 
+                    <div class="video-tags">
+                        ${(video.tags || []).map(tag => `
+                            <span class="video-tag">
+                                ${tag}
+                            </span>
+                        `).join("")}
+                    </div>
+
                 </div>
 
             </div>
         `;
+
     }).join("");
 
-    /*
-       もっと見る後は動画一覧内スクロール解除
-    */
-    if(showAllVideos){
-        list.classList.add("expanded");
-        more.style.display = "none";
-    }else{
-        list.classList.remove("expanded");
+    // もっと見るボタン
+    if(more){
 
-        if(filtered.length > 6){
+        if(sorted.length > 4 && !showAllVideos){
             more.style.display = "block";
         }else{
             more.style.display = "none";
         }
-    }
-}
 
+    }
+
+}
 function toggleMoreVideos(){
 
     showAllVideos = !showAllVideos;
